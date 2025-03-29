@@ -39,7 +39,7 @@ class RecipeListView(View):
 
 class RecipeListSearchName(View):
     def get(self, request):
-        recipes = Recipe.objects.all()  
+        recipes = Recipe.objects.all()  #Viết hàm trả về danh sách recipes có tên tìm kiếm
         paginator = Paginator(recipes, 3)  
 
         page_number = request.GET.get("page")  # Lấy số trang từ URL (?page=2)
@@ -50,8 +50,21 @@ class RecipeListSearchName(View):
             "page_obj": page_obj,  # Đối tượng phân trang
         }
         return render(request, "recipes/recipe_list.html", context)
-        # return render(request, "recipes/recipe_list.html")  
+        
+class RecipeListSearchCategory(View):
+    def get(self, request):
+        recipes = Recipe.objects.all()  #Viết hàm trả về danh sách recipes có tên tìm kiếm
+        paginator = Paginator(recipes, 3)  
 
+        page_number = request.GET.get("page")  # Lấy số trang từ URL (?page=2)
+        page_obj = paginator.get_page(page_number)  # Lấy trang tương ứng
+
+        context = {
+            "recipes": page_obj,  # Danh sách món ăn của trang hiện tại
+            "page_obj": page_obj,  # Đối tượng phân trang
+        }
+        return render(request, "recipes/recipe_list.html", context)
+        
 
 class RecipeCreate(View):
     def get(self, request):

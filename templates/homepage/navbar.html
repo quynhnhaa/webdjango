@@ -146,7 +146,8 @@
                                         </div>
                                     </li> {% endcomment %}
                                     <li><a href="{% url 'recipes:recipe_list' %}">Khám Phá Món Ngon</a></li>
-                                    <li><a href="{% url 'recipes:recipe_create' %}" style="background-color: rgb(255 153 51 )">Viết Món Mới</a></li>
+                                    {% comment %} <li><a href="{% url 'recipes:recipe_create' %}" style="background-color: rgb(255 153 51 )">Viết Món Mới</a></li> {% endcomment %}
+                                    <li><a href="{% url 'recipes:recipe_create' %}">Viết Món Mới</a></li>
                                 </ul>
 
                                 <!-- Newsletter Form -->

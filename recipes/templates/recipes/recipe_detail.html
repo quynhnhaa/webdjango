@@ -143,7 +143,7 @@
                                 <div class="custom-control custom-checkbox">
                                     <input type="checkbox" class="custom-control-input" id="customCheck{{ ri.id }}">
                                     <label class="custom-control-label" for="customCheck{{ ri.id }}"> 
-                                        {{ ri.ingredient.name }}: {{ ri.quantity }}
+                                        {{ ri.ingredient.name }}: <span style="color: #9b9b9b">{{ ri.quantity }} </span>
                                     </label>
                                 </div>
                             {% endfor %}

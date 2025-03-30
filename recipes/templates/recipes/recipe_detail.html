@@ -11,6 +11,21 @@
 {% endblock %}
 
 {% block content %}
+    {% if request.session.recipe_success %}
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            Swal.fire({
+                title: "Thành công!",
+                text: "Bạn đã tạo món ăn thành công!",
+                icon: "success",
+                confirmButtonText: "OK"
+            });
+        </script>
+        {% comment %} Xóa session để thông báo không xuất hiện lại khi reload trang {% endcomment %}
+        <script>
+            fetch("{% url 'recipes:clear_recipe_success' %}", {method: "POST"});
+        </script>
+    {% endif %}
     <!-- Search Wrapper -->
     <div class="search-wrapper">
         <!-- Close Btn -->

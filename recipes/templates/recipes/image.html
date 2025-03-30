@@ -4,3 +4,217 @@
 {% else %}
     <p>Không có ảnh</p>
 {% endif %} {% endcomment %}
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>
+        Recipe Page
+    </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <script>
+        function addIngredient() {
+            const container = document.getElementById('ingredients-container');
+            const newInput = document.createElement('div');
+            newInput.className = 'mb-2 flex items-center';
+            newInput.innerHTML = `
+                <input class="w-1/3 p-2 border rounded mr-2" type="text" placeholder="Số lượng"/>
+                <input class="w-2/3 p-2 border rounded" list="ingredients" placeholder="Chọn hoặc nhập nguyên liệu"/>
+                <datalist id="ingredients">
+                    <option value="Bột">
+                    <option value="Nước">
+                    <option value="Đường">
+                </datalist>
+                <button class="ml-2 text-red-500" onclick="removeElement(this)">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            `;
+            container.appendChild(newInput);
+        }
+
+        function addStep() {
+            const container = document.getElementById('steps-container');
+            const stepCount = container.children.length + 1;
+            const newStep = document.createElement('div');
+            newStep.className = 'mb-2 flex items-start';
+            newStep.innerHTML = `
+                <span class="bg-gray-200 text-gray-600 rounded-full w-6 h-6 flex items-center justify-center mr-2">${stepCount}</span>
+                <div class="flex-1">
+                    <input class="w-full p-2 border rounded mb-2" type="text" placeholder="Nhập bước"/>
+                    <img alt="Step image" class="w-full h-32 bg-gray-100 rounded" src="https://placehold.co/100x100" />
+                </div>
+                <button class="ml-2 text-red-500" onclick="removeElement(this)">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            `;
+            container.appendChild(newStep);
+        }
+
+        function removeElement(button) {
+            button.parentElement.remove();
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-700">
+<div class="container mx-auto p-4">
+    <div class="flex justify-between items-center mb-4">
+        <button class="text-gray-500">
+            Đã lưu
+        </button>
+        <div class="flex space-x-2">
+            <button class="bg-red-100 text-red-500 px-4 py-2 rounded border border-red-500">
+                Xóa
+            </button>
+            <button class="bg-yellow-100 text-yellow-500 px-4 py-2 rounded border border-yellow-500">
+                Lưu và Đóng
+            </button>
+            <button class="bg-orange-500 text-white px-4 py-2 rounded">
+                Lên sóng
+            </button>
+        </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-gray-100 p-4 rounded flex flex-col items-center justify-center">
+            <img alt="Placeholder image" class="mb-4" height="100"
+                 src="https://storage.googleapis.com/a1aa/image/FOe0VH6k1opjaOLo120kI0EGD6iAUQz0VaMvfDfxCq4.jpg" width="100"/>
+            <p class="text-center">
+                Bạn đã đăng hình món mình nấu ở đây chưa? Chia sẻ với mọi người thành phẩm nấu nướng của bạn nào!
+            </p>
+        </div>
+        <div class="col-span-2">
+            <div class="bg-gray-100 p-4 rounded mb-4">
+                <h1 class="text-xl font-bold">
+                    Tên món: Món canh bí ngon nhất nhà mình
+                </h1>
+                <div class="flex items-center mt-2">
+                    <img alt="User avatar" class="rounded-full mr-2" height="40"
+                         src="https://storage.googleapis.com/a1aa/image/SoXCrjwhKpJ8PygeY7t827baz9mahj3WkX540F8mQhk.jpg" width="40"/>
+                    <div>
+                        <p class="font-semibold">
+                            Nha Quỳnh
+                            <span class="text-gray-500">
+                                @ahnn
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                <p class="mt-4">
+                    Hãy chia sẻ với mọi người về món này của bạn nhé - ai đã truyền cảm hứng cho bạn, tại sao nó đặc biệt, bạn thích thưởng thức nó thế nào? Dùng ký tự @ để đề cập đến ai đó.
+                </p>
+            </div>
+            <div class="mt-4">
+                <h2 class="text-lg font-bold mb-2">
+                    Danh mục
+                </h2>
+                <select class="w-full p-2 border rounded">
+                    <option value="">Chọn danh mục</option>
+                    <option value="Món chính">Món chính</option>
+                    <option value="Món phụ">Món phụ</option>
+                    <option value="Tráng miệng">Tráng miệng</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                    <h2 class="text-lg font-bold mb-2">
+                        Nguyên Liệu
+                    </h2>
+                    <div class="mb-2">
+                        <label class="block text-gray-600">
+                            Khẩu phần
+                        </label>
+                        <input class="w-full p-2 border rounded" type="text" value="2 người"/>
+                    </div>
+                    <div id="ingredients-container">
+                        <div class="mb-2 flex items-center">
+                            <input class="w-1/3 p-2 border rounded mr-2" type="text" value="250g"/>
+                            <input class="w-2/3 p-2 border rounded" list="ingredients" placeholder="Chọn hoặc nhập nguyên liệu"/>
+                            <datalist id="ingredients">
+                                <option value="Bột">
+                                <option value="Nước">
+                                <option value="Đường">
+                            </datalist>
+                            <button class="ml-2 text-red-500" onclick="removeElement(this)">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                        <div class="mb-2 flex items-center">
+                            <input class="w-1/3 p-2 border rounded mr-2" type="text" value="100ml"/>
+                            <input class="w-2/3 p-2 border rounded" list="ingredients" placeholder="Chọn hoặc nhập nguyên liệu"/>
+                            <datalist id="ingredients">
+                                <option value="Bột">
+                                <option value="Nước">
+                                <option value="Đường">
+                            </datalist>
+                            <button class="ml-2 text-red-500" onclick="removeElement(this)">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                        <div class="mb-2 flex items-center">
+                            <input class="w-1/3 p-2 border rounded mr-2" type="text" value="250g"/>
+                            <input class="w-2/3 p-2 border rounded" list="ingredients" placeholder="Chọn hoặc nhập nguyên liệu"/>
+                            <datalist id="ingredients">
+                                <option value="Bột">
+                                <option value="Nước">
+                                <option value="Đường">
+                            </datalist>
+                            <button class="ml-2 text-red-500" onclick="removeElement(this)">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="text-blue-500">
+                        + Phần
+                    </button>
+                    <button class="text-blue-500 ml-4" onclick="addIngredient()">
+                        + Nguyên liệu
+                    </button>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold mb-2">
+                        Các bước
+                    </h2>
+                    <div class="mb-2">
+                        <label class="block text-gray-600">
+                            Thời gian nấu
+                        </label>
+                        <input class="w-full p-2 border rounded" type="text" value="1 tiếng 30 phút"/>
+                    </div>
+                    <div id="steps-container">
+                        <div class="mb-2 flex items-start">
+                            <span class="bg-gray-200 text-gray-600 rounded-full w-6 h-6 flex items-center justify-center mr-2">
+                                1
+                            </span>
+                            <div class="flex-1">
+                                <input class="w-full p-2 border rounded mb-2" type="text" value="Trộn bột và nước đến khi đặc lại"/>
+                                <img alt="Step image" class="w-full h-32 bg-gray-100 rounded" height="100"
+                                     src="https://storage.googleapis.com/a1aa/image/ISvtAPWfupnWY80TwT5eQAW1BsTLwqCgB3g4bNNYXgs.jpg" width="100"/>
+                            </div>
+                            <button class="ml-2 text-red-500" onclick="removeElement(this)">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                        <div class="mb-2 flex items-start">
+                            <span class="bg-gray-200 text-gray-600 rounded-full w-6 h-6 flex items-center justify-center mr-2">
+                                2
+                            </span>
+                            <div class="flex-1">
+                                <input class="w-full p-2 border rounded mb-2" type="text" value="Đậy kín hỗn hợp lại và để ở nhiệt độ phòng trong vòng 24-36 tiếng"/>
+                                <img alt="Step image" class="w-full h-32 bg-gray-100 rounded" height="100"
+                                     src="https://storage.googleapis.com/a1aa/image/ISvtAPWfupnWY80TwT5eQAW1BsTLwqCgB3g4bNNYXgs.jpg" width="100"/>
+                            </div>
+                            <button class="ml-2 text-red-500" onclick="removeElement(this)">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="text-blue-500" onclick="addStep()">
+                        + Thêm bước
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

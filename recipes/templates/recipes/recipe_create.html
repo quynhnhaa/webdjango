@@ -70,11 +70,11 @@
                 <div class="flex justify-between items-center mb-4">
                     <button class="text-gray-500"></button>
                     <div class="flex space-x-2">
-                        <button type="button" class="bg-yellow-100 text-yellow-500 px-4 py-2 rounded border border-yellow- ;border-yellow-500">
-                            Xóa
+                        <button id="btn-close" type="button" class="bg-yellow-100 text-yellow-500 px-4 py-2 rounded border border-yellow- ;border-yellow-500">
+                            Đóng
                         </button>
                         <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded">
-                            Lưu và Đóng
+                            Lưu
                         </button>
                     </div>
                 </div>
@@ -266,6 +266,30 @@
     });
 </script>
 <!-- Truyền dữ liệu từ template sang JavaScript -->
+
+
+<!-- Nhúng thư viện SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.getElementById("btn-close").addEventListener("click", function () {
+        Swal.fire({
+            title: "Bạn có chắc chắn muốn đóng?",
+            text: "Bạn sẽ được chuyển về trang chủ!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Chắn Chắn",
+            cancelButtonText: "Huỷ"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Chuyển hướng sang trang có URL {% url 'core:index' %}
+                window.location.href = "{% url 'core:index' %}";
+            }
+        });
+    });
+</script>
 
 <!-- Các script khác -->
 <script src="{% static 'homepage/js/jquery/jquery-2.2.4.min.js' %}"></script>

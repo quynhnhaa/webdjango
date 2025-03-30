@@ -11,7 +11,7 @@ Sau khi migrate cơ sở dữ liệu, chạy file data_initial.sql trong mysql �
 
 📂 *Bạn có thể xem nội dung chi tiết trong tập tin:*
 ```
-data_initial.sql cùng cấp với manage.py
+data_initial.sql (cùng cấp với manage.py)
 ```
 
 ---

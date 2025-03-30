@@ -7,7 +7,9 @@ urlpatterns = [
     path('recipe_detail/<int:recipe_id>/', views.RecipeDetail.as_view(), name="recipe_detail"),
     path("recipe_list/", views.RecipeListView.as_view(), name="recipe_list"),
     path("recipe_create/", views.RecipeCreate.as_view(), name="recipe_create"),
-    # path("recipe_search_name/", views.RecipeListSearchName.as_view(), name="recipe_search_name"),
+    path("recipe_search_name/", views.RecipeListSearchName.as_view(), name="recipe_search_name"),
     # path("recipe_search_category/", views.RecipeListSearchCategory.as_view(), name="recipe_search_category"),
     path('showimage/', views.ShowImage.as_view(), name="showimage"),
+    path("clear_recipe_success/", views.clear_recipe_success, name="clear_recipe_success"),
+    path("recipe_personal/", views.RecipePersonal.as_view(), name="recipe_personal"),
 ]

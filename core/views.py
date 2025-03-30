@@ -3,14 +3,21 @@ from django.views import View
 from django.http import HttpResponse
 from recipes.models import Recipe
 from django.contrib.auth import authenticate, login, logout
-
+import random
 # Create your views here.
 
 
 class HomeView(View):
     def get(self, request):
-        recipe = Recipe.objects.first() 
-        return render(request, "homepage/index.html", {"recipe": recipe})
+
+        # recipe_ids = Recipe.objects.values_list('id', flat=True)
+        # random_ids = random.sample(list(recipe_ids), min(len(recipe_ids), 8))
+        # random_recipes = Recipe.objects.filter(id__in=random_ids)
+        recipes = list(Recipe.objects.order_by('?'))  # Lấy danh sách ngẫu nhiên
+        while len(recipes) < 8:
+            recipes.append(random.choice(recipes))  # Lặp lại ngẫu nhiên nếu chưa đủ
+        context = {"random_recipes": recipes[:8]}
+        return render(request, "homepage/index.html", context)
 class LoginView(View):
     template_name = "homepage/login.html"
 

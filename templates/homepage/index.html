@@ -7,6 +7,15 @@
     <!-- Favicon -->
     <link rel="icon" href="img/core-img/favicon.ico">
     <link rel="stylesheet" href="{% static 'homepage/style.css' %}">
+    <style>
+        .recipe-img {
+            width: 100%; /* Chiều rộng đầy đủ theo khung chứa */
+            height: 200px; /* Chiều cao cố định */
+            object-fit: cover; /* Cắt ảnh để lấp đầy khung mà không méo */
+            border-radius: 8px; /* Bo góc nhẹ cho đẹp */
+        }
+        
+    </style>
 {% endblock %}
 
     <!--Navbar-->
@@ -70,24 +79,24 @@
                     <!-- Top Catagory Area -->
                     <div class="col-12 col-lg-6">
                         <div class="single-top-catagory">
-                            <img src="{{ recipe.image.url}}" alt="">
+                            <img src="{{ random_recipes.7.image.url}}" alt=""style="max-height:300px;">
                             <!-- Content -->
                             <div class="top-cta-content">
-                                <h3>{{recipe.name}}</h3>
-                                <h6>{{recipe.category.name}}</h6>
-                                <a href="{% url 'recipes:recipe_detail' recipe.id %}" class="btn delicious-btn">Xem Công Thức</a>
+                                <h3>{{random_recipes.7.name}}</h3>
+                                <h6>{{random_recipes.7.category.name}}</h6>
+                                <a href="{% url 'recipes:recipe_detail' random_recipes.7.id %}" class="btn delicious-btn">Xem Công Thức</a>
                             </div>
                         </div>
                     </div>
                     <!-- Top Catagory Area -->
                     <div class="col-12 col-lg-6">
                         <div class="single-top-catagory">
-                            <img src="{{ recipe.image.url}}" alt="">
+                            <img src="{{ random_recipes.6.image.url}}" alt="" style="max-height:300px;">
                             <!-- Content -->
                             <div class="top-cta-content">
-                                <h3>{{recipe.name}}</h3>
-                                <h6>{{recipe.category.name}}</h6>
-                                <a "{% url 'recipes:recipe_detail' recipe.id %}" class="btn delicious-btn">Xem Công Thức</a>
+                                <h3>{{random_recipes.6.name}}</h3>
+                                <h6>{{random_recipes.6.category.name}}</h6>
+                                <a href="{% url 'recipes:recipe_detail' random_recipes.7.id %}" class="btn delicious-btn">Xem Công Thức</a>
                             </div>
                         </div>
                     </div>
@@ -109,14 +118,15 @@
     
                 <div class="row">
                     <!-- Single Best Receipe Area -->
-                        {% for _ in "123456" %}
+                        {% for recipe in random_recipes|slice:":6" %}
                             <div class="col-12 col-sm-6 col-lg-4">
                                 <div class="single-best-receipe-area mb-30">
-                                    <img src="{{ recipe.image.url}}" alt="">
+                                    <img src="{{ recipe.image.url}}" alt="" class="recipe-img">
                                     <div class="receipe-content">
-                                        <a href="{% url 'recipes:recipe_detail' recipe.id %}">
-                                            <h5>{{recipe.name}}</h5>
-                                        </a>
+                                            
+                                            
+                                            <a href="{% url 'recipes:recipe_detail' recipe.id %}"><h5>{{recipe.name}}</h5></a>
+                                    
                                         <div class="ratings">
                                             <i class="fa fa-star" aria-hidden="true"></i>
                                             <i class="fa fa-star" aria-hidden="true"></i>

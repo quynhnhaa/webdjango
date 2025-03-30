@@ -6,14 +6,19 @@ Trước tiên, bạn cần cài đặt tất cả các thư viện cần thiế
 pip install -r requirements.txt
 ```
 
-## 2. Migrate và Khởi tạo Dữ liệu
-Sau khi migrate cơ sở dữ liệu, chạy file data_initial.sql trong mysql để khởi tạo dữ liệu
 
-📂 *Bạn có thể xem nội dung chi tiết trong tập tin:*
-```
-data_initial.sql (cùng cấp với manage.py)
-```
-
+ ## 2. Migrate và Khởi tạo Dữ liệu
+ Sau khi migrate cơ sở dữ liệu, hãy chạy lệnh sau để tạo dữ liệu ban đầu (chỉ cần chạy một lần duy nhất):
+ ```sh
+ python3 manage.py populate_db
+ ```
+ 📌 *Mục đích:* Lệnh này giúp tạo dữ liệu trước khi chạy ứng dụng web.
+ 
+ 📂 *Bạn có thể xem nội dung chi tiết trong tập tin:*
+ ```
+ recipes/management/commands/populate_db.py
+ ```
+ 
 ---
 
 ## 3. Thông tin về Module `Recipe`

@@ -21,8 +21,9 @@
         <div class="container">
             <div class="row">
                 <div class="col-12">
-                    <form action="#" method="post">
-                        <input type="search" name="search" placeholder="Type any keywords...">
+                    <form action="{% url 'recipes:recipe_list' %}" method="get">
+                        {% csrf_token %}
+                        <input type="search" name="search" placeholder="Type any keywords..." value="{{ query }}">  
                         <button type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
                     </form>
                 </div>
@@ -139,16 +140,27 @@
                         </style>
                         <!-- Widget -->
                         <div class="single-widget mb-80">
-                            <h5>Phân loại</h5>
+                            <input type="hidden" name="search" value="{{ query }}">
                             {% for category in categories %}
-                            <h6>{{ category.name }}</h6>
-                            <ul class="list">
-                                {% for detail in category.detailcategory_set.all %}
-                                    <li><a href="#">{{ detail.name }}</a></li>
-                                {% endfor %}
-                            </ul>
+                                <h6>{{ category.name }}</h6>
+                                <ul class="list">
+                                    {% for detail in category.detailcategory_set.all %}
+                                        <li>
+                                            <input 
+                                                type="checkbox" 
+                                                name="category_{{ category.id }}" 
+                                                value="{{ detail.id }}"
+                                                id="category_{{ category.id }}_{{ detail.id }}"
+                                                onchange="updateURL({{ category.id }}, {{ detail.id }})"
+                                                {% if detail.id|stringformat:"s" in selected_detailcategories %} checked {% endif %}
+                                            >
+                                            <label for="category_{{ category.id }}_{{ detail.id }}">{{ detail.name }}</label>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
                             {% endfor %}
                         </div>
+                        
 
                         <!-- Widget -->
                         <div class="single-widget mb-80">
@@ -184,5 +196,28 @@
     <script src=" {% static 'homepage/js/plugins/plugins.js' %}"></script>
     <!-- Active js -->
     <script src=" {% static 'homepage/js/active.js' %}"></script>
+
+    <script src=" {% static 'homepage/js/search.js' %}"></script>
+
+    <script>
+        function updateURL() {
+            let url = new URL(window.location);
+            let params = new URLSearchParams(url.search);
+        
+            // Xóa tất cả 'detailcategory' hiện có trong URL
+            params.delete('detailcategory');
+        
+            // Lấy tất cả radio button đang được chọn và thêm vào URL
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(function(checkedRadio) {
+                params.append('detailcategory', checkedRadio.value);
+            });
+        
+            // Cập nhật URL mà không tải lại trang
+            window.history.replaceState({}, '', '?' + params.toString());
+            window.location.reload(); 
+        }
+         
+    </script>        
+
 
 {% endblock %}

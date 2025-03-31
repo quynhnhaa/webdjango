@@ -8,6 +8,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.http import JsonResponse
 import json
+from django.db.models import Q
 
 
 # Create your views here.
@@ -35,7 +36,22 @@ class RecipeDetail(View):
 
 class RecipeListView(View):
     def get(self, request):
+        query = request.GET.get("search", "").strip()
+        selected_detailcategories = request.GET.getlist("detailcategory")  # Lấy danh sách các danh mục chi tiết được chọn
+        selected_detailcategories = [str(id) for id in selected_detailcategories]
+
         recipes = Recipe.objects.all()  
+        if query:
+            recipes = recipes.filter(name__icontains=query)  # Tìm kiếm theo tên món ăn
+
+        # Lọc theo danh mục chi tiết nếu có
+        if selected_detailcategories:
+            detail_query = Q()  
+            for detail_id in selected_detailcategories:
+                detail_query &= Q(category__id=detail_id)  
+            
+            recipes = recipes.filter(detail_query) 
+            
         paginator = Paginator(recipes, 3)  
 
         page_number = request.GET.get("page")  # Lấy số trang từ URL (?page=2)
@@ -44,6 +60,8 @@ class RecipeListView(View):
         context = {
             "recipes": page_obj,  # Danh sách món ăn của trang hiện tại
             "page_obj": page_obj,  # Đối tượng phân trang
+            "query": query, 
+            "selected_detailcategories": selected_detailcategories,
         }
         return render(request, "recipes/recipe_list.html", context)
         # return render(request, "recipes/recipe_list.html")

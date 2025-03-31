@@ -4,6 +4,8 @@ from django.http import HttpResponse
 from recipes.models import Recipe
 from django.contrib.auth import authenticate, login, logout
 import random
+from users.models import User
+from django.contrib import messages
 # Create your views here.
 
 
@@ -35,6 +37,30 @@ class LoginView(View):
         else:
             return render(request, self.template_name, {"error": "Tên đăng nhập hoặc mật khẩu sai"})
         
+class RegisterView(View):
+    def get(self, request):
+        return render(request, "homepage/register.html")
+    def post(self, request):
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password1 = request.POST.get('pass1')
+        password2 = request.POST.get('pass2')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Tên tài khoản đã được sử dụng!")
+            return render(request, 'homepage/register.html')
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email đã được sử dụng!")
+            return render(request, 'homepage/register.html')
+
+        if password1 != password2:
+            messages.error(request, "Mật khẩu xác nhận không khớp!")
+            return render(request, 'homepage/register.html')
+
+    
+        user = User.objects.create_user(username=username, email=email, password=password1)
+        user.save()
+        return redirect('core:login') 
 class LogoutView(View):
     def get(self, request):
         logout(request) 

@@ -2,7 +2,13 @@
 {% load static %}
 
 {% block cssblock %}
-    <title>Chỉnh sửa món - {{ recipe.name }}</title>
+    <title>
+        {% if recipe %}
+            Chỉnh sửa món - {{ recipe.name }}
+        {% else %}
+            Viết món mới
+        {% endif %}
+    </title>
     <link rel="icon" href="img/core-img/favicon.ico">
     <link rel="stylesheet" href="{% static 'homepage/style.css' %}">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -44,19 +50,20 @@
 
         // Khởi tạo dữ liệu hiện có
         window.onload = function() {
-            // Thêm các nguyên liệu hiện có
-            {% for ri in recipe_ingredients %}
-                addIngredient("{{ ri.quantity }}", "{{ ri.ingredient.name }}");
-            {% empty %}
-                addIngredient(); // Thêm một trường trống nếu không có nguyên liệu
-            {% endfor %}
+            {% if recipe %}
+                {% for ri in recipe_ingredients %}
+                    addIngredient("{{ ri.quantity }}", "{{ ri.ingredient.name }}");
+                {% empty %}
+                    addIngredient(); // Thêm một trường trống nếu không có nguyên liệu
+                {% endfor %}
 
-            // Thêm các bước hiện có
-            {% for step in instructions %}
-                addStep({{ step.step }}, "{{ step.instruction|escapejs }}");
-            {% empty %}
-                addStep(1); // Thêm bước đầu tiên nếu không có
-            {% endfor %}
+                // Thêm các bước hiện có
+                {% for step in instructions %}
+                    addStep({{ step.step }}, "{{ step.instruction|escapejs }}");
+                {% empty %}
+                    addStep(1); // Thêm bước đầu tiên nếu không có
+                {% endfor %}
+            {% endif %}
         };
     </script>
 {% endblock %}
@@ -67,7 +74,13 @@
             <div class="row h-100 align-items-center">
                 <div class="col-12">
                     <div class="breadcumb-text text-center">
-                        <h2>Chỉnh sửa món: {{ recipe.name }}</h2>
+                        <h2>
+                            {% if recipe %}
+                                Chỉnh sửa món: {{ recipe.name }}
+                            {% else %}
+                                Sáng Tạo Món Ngon
+                            {% endif %}
+                        </h2>
                     </div>
                 </div>
             </div>
@@ -114,14 +127,22 @@
                             <input type="text" name="description" class="form-control" id="description" value="{{ recipe.description|default:'' }}" placeholder="Hãy mô tả món ăn của bạn">
                         </p>
                     </div>
-                    <div class="mt-4 mb-6">
+                    <div class="mt-8 mb-6">
                         <h2 class="text-lg font-bold mb-2">Danh mục</h2>
-                        <input class="w-full p-2 border rounded" name="category" list="categorys" value="{{ recipe.category.name|default:'' }}" placeholder="Chọn hoặc nhập danh mục"/>
-                        <datalist id="categorys">
-                            {% for category in categorys %}
-                                <option value="{{ category }}">
+                            {% for category in categories %}
+                                <div class="flex flex-col">
+                                    <label class="font-semibold">{{ category.name }}</label>
+                                    <select name="detailcategory_ids[]" class="p-2 border rounded w-auto min-w-[100px] max-h-[100px]">
+                                        <option value="">Chọn {{ category.name }}</option>
+                                        {% for detail in category.detailcategory_set.all %}
+                                            <option value="{{ detail.id }}" 
+                                                {% if recipe and detail.id in recipe_detailcategory_ids %} selected {% endif %}>
+                                                {{ detail.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
                             {% endfor %}
-                        </datalist>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -148,19 +169,22 @@
             </div>
             <input type="hidden" name="ingredients" id="ingredients-data">
             <input type="hidden" name="steps" id="steps-data">
+            <input type="hidden" id="detailcategory-input" name="detailcategory_ids">
         </form>
     </div>
 {% endblock %}
 
 {% block jsblock %}
 <script>
-    const categoryOptions = Array.from(document.getElementById('categorys').options).map(option => option.value);
     const ingredientOptions = Array.from(document.getElementById('ingredients').options).map(option => option.value);
 
     document.getElementById('recipeForm').addEventListener('submit', function(event) {
         const name = document.getElementById('name').value.trim();
         const description = document.getElementById('description').value.trim();
-        const category = document.getElementById('recipeForm').querySelector('input[name="category"]').value.trim();
+        let detailcategory_ids = Array.from(document.getElementById('recipeForm')
+            .querySelectorAll("select[name='detailcategory_ids[]']"))
+            .map(select => select.value)
+            .filter(value => value !== "");
         const cookingTime = document.getElementById('recipeForm').querySelector('input[name="cooking_time"]').value;
         const image = document.getElementById('imageUpload').files[0];
 
@@ -189,10 +213,8 @@
         } else if (isNaN(cookingTime) || parseInt(cookingTime) <= 0) {
             errors.push("Thời gian nấu phải là số nguyên dương.");
         }
-        if (!category) {
+        if (detailcategory_ids.length === 0) {
             errors.push("Danh mục là bắt buộc.");
-        } else if (!categoryOptions.includes(category)) {
-            errors.push("Danh mục phải được chọn từ danh sách.");
         }
         if (ingredients.length === 0) {
             errors.push("Phải có ít nhất một nguyên liệu.");
@@ -220,6 +242,7 @@
             errorContainer.classList.remove('hidden');
         } else {
             document.getElementById('ingredients-data').value = JSON.stringify(ingredients);
+            document.getElementById('detailcategory-input').value = JSON.stringify(detailcategory_ids)
             document.getElementById('steps-data').value = JSON.stringify(steps);
             errorContainer.classList.add('hidden');
         }

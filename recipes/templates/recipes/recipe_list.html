@@ -110,30 +110,44 @@
                             </ul>
                         </div>
 
+                        <style>
+                            .single-widget h6 {
+                                font-weight: bold;
+                                font-size: 16px;
+                                margin-bottom: 10px; /* Giảm khoảng cách giữa tiêu đề và danh sách */
+                            }
+
+                            .single-widget ul {
+                                list-style: none;
+                                padding: 0;
+                                margin: 0;
+                            }
+
+                            .single-widget ul li {
+                                margin-bottom: 5px; /* Giảm khoảng cách giữa các mục */
+                                color: #666; /* Màu xám nhẹ để dễ nhìn hơn */
+                            }
+
+                            .single-widget ul li a {
+                                text-decoration: none;
+                                color: inherit;
+                            }
+
+                            .single-widget ul li a:hover {
+                                color: #000; /* Chuyển thành màu đen khi hover */
+                            }
+                        </style>
                         <!-- Widget -->
                         <div class="single-widget mb-80">
-                            <h6>Categories</h6>
+                            <h5>Phân loại</h5>
+                            {% for category in categories %}
+                            <h6>{{ category.name }}</h6>
                             <ul class="list">
-                                <li><a href="#">Restaurants</a></li>
-                                <li><a href="#">Food &amp; Drinks</a></li>
-                                <li><a href="#">Vegans</a></li>
-                                <li><a href="#">Events &amp; Lifestyle</a></li>
-                                <li><a href="#">Uncategorized</a></li>
+                                {% for detail in category.detailcategory_set.all %}
+                                    <li><a href="#">{{ detail.name }}</a></li>
+                                {% endfor %}
                             </ul>
-                        </div>
-
-                        <!-- Widget -->
-                        <div class="single-widget mb-80">
-                            <h6>Newsletter</h6>
-
-                            <!-- Form -->
-                            <div class="newsletter-form bg-img bg-overlay" style="background-image: url(img/bg-img/bg1.jpg);">
-                                <form action="#" method="post">
-                                    <input type="email" name="email" placeholder="Subscribe to newsletter">
-                                    <button type="submit" class="btn delicious-btn w-100">Subscribe</button>
-                                </form>
-                                <p>Fusce nec ante vitae lacus aliquet vulputate. Donec sceleri sque accumsan molestie. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia.</p>
-                            </div>
+                            {% endfor %}
                         </div>
 
                         <!-- Widget -->

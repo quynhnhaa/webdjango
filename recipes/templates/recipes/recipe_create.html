@@ -106,14 +106,20 @@
                             </p>
                             
                         </div>
-                        <div class="mt-4 mb-6">
+
+                        <div class="mt-8 mb-6">
                             <h2 class="text-lg font-bold mb-2">Danh mục</h2>
-                            <input class="w-full p-2 border rounded" name="category" list="categorys" placeholder="Chọn hoặc nhập danh mục"/>
-                            <datalist id="categorys">
-                                {% for category in categorys %}
-                                    <option value="{{ category }}">
+                                {% for category in categories %}
+                                    <div class="flex flex-col">
+                                        <label class="font-semibold">{{ category.name }}</label>
+                                        <select name="detailcategory_ids[]" class="p-2 border rounded w-auto min-w-[100px] max-h-[100px]">
+                                            <option value="">Chọn {{ category.name }}</option>
+                                            {% for detail in category.detailcategory_set.all %}
+                                                <option value="{{ detail.id }}">{{ detail.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
                                 {% endfor %}
-                            </datalist>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -159,6 +165,7 @@
                 <!-- Thêm input hidden để lưu dữ liệu JSON nếu cần -->
                 <input type="hidden" name="ingredients" id="ingredients-data">
                 <input type="hidden" name="steps" id="steps-data">
+                <input type="hidden" id="detailcategory-input" name="detailcategory_ids">
             </form>
         </div>
     {% endblock %}
@@ -166,17 +173,21 @@
     {% block jsblock %}
 <script>
     // Lấy danh sách hợp lệ từ datalist
-    const categoryOptions = Array.from(document.getElementById('categorys').options).map(option => option.value);
+
     const ingredientOptions = Array.from(document.getElementById('ingredients').options).map(option => option.value);
 
-    console.log('Valid Categories:', categoryOptions);
     console.log('Valid Ingredients:', ingredientOptions);
 
     document.getElementById('recipeForm').addEventListener('submit', function(event) {
         // Thu thập dữ liệu
         const name = document.getElementById('name').value.trim();
         const description = document.getElementById('description').value.trim();
-        const category = document.getElementById('recipeForm').querySelector('input[name="category"]').value.trim();
+        let detailcategory_ids = Array.from(document.getElementById('recipeForm')
+            .querySelectorAll("select[name='detailcategory_ids[]']"))
+            .map(select => select.value)
+            .filter(value => value !== "");
+
+        console.log(detailcategory_ids);
         const cookingTime = document.getElementById('recipeForm').querySelector('input[name="cooking_time"]').value;
         const image = document.getElementById('imageUpload').files[0];
     
@@ -188,9 +199,6 @@
                 ingredients.push({ quantity, name });
             }
         });
-        //const ingredientsInput = document.getElementById('ingredients-data');
-        //ingredientsInput.value = JSON.stringify(ingredients);
-        //console.log('Ingredients:', ingredientsInput.value);
 
         // Thu thập các bước
         const steps = [];
@@ -200,9 +208,6 @@
                 steps.push({ description });
             }
         });
-        //const stepsInput = document.getElementById('steps-data');
-        //stepsInput.value = JSON.stringify(steps);
-        //console.log('Steps:', stepsInput.value);
 
         // Kiểm tra tính hợp lệ
         const errors = [];
@@ -213,10 +218,8 @@
         } else if (isNaN(cookingTime) || parseInt(cookingTime) <= 0) {
             errors.push("Thời gian nấu phải là số nguyên dương.");
         }
-        if (!category) {
+        if (detailcategory_ids.length === 0) {
             errors.push("Danh mục là bắt buộc.");
-        } else if (!categoryOptions.includes(category)) {
-            errors.push("Danh mục phải được chọn từ danh sách: ");
         }
         if (ingredients.length === 0) {
             errors.push("Phải có ít nhất một nguyên liệu.");
@@ -247,6 +250,7 @@
             // Nếu hợp lệ, gán dữ liệu vào input hidden và gửi form
             document.getElementById('ingredients-data').value = JSON.stringify(ingredients);
             document.getElementById('steps-data').value = JSON.stringify(steps);
+            document.getElementById('detailcategory-input').value = JSON.stringify(detailcategory_ids)
             errorContainer.classList.add('hidden'); // Ẩn thông báo lỗi
             // Form sẽ được gửi bình thường
         }

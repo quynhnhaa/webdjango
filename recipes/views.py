@@ -7,6 +7,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.http import JsonResponse
+import json
 
 
 # Create your views here.
@@ -22,12 +23,13 @@ class RecipeDetail(View):
         recipe = get_object_or_404(Recipe, id=recipe_id)
         instructions = json.loads(recipe.instructions)
         reviews = recipe.review_set.all()
-
+        categories = ', '.join(recipe.category.values_list('name', flat=True))
+        print(categories)
         # Kiểm tra xem có thông báo nào không
         recipe_message = request.session.pop("recipe_message", None)  
         recipe_status = request.session.pop("recipe_status", None)  # success / info / error
 
-        context = {"recipe": recipe, "instructions": instructions, "reviews": reviews, "recipe_status": recipe_status, "recipe_message": recipe_message}
+        context = {"recipe": recipe, "instructions": instructions, "reviews": reviews, "recipe_status": recipe_status, "recipe_message": recipe_message, "categories" : categories}
         return render(request, "recipes/recipe_detail.html", context)  
 
 
@@ -74,164 +76,69 @@ class RecipeListSearchCategory(View):
         }
         return render(request, "recipes/recipe_list.html", context)
         
-
-class RecipeCreate(View):
-    def get(self, request):
-        # Chuyển QuerySet thành danh sách
-        ingredients = list(Ingredient.objects.values_list('name', flat=True))  # Lấy danh sách tên nguyên liệu
-        categorys = list(Category.objects.values_list('name', flat=True))  # Lấy danh sách tên danh mục
-        context = {"ingredients": ingredients, "categorys": categorys}
-        return render(request, "recipes/recipe_create.html", context)
-
-    def post(self, request):
-        # Lấy dữ liệu cơ bản
-        name = request.POST.get('name')
-        description = request.POST.get('description')
-        cooking_time = request.POST.get('cooking_time')
-        image = request.FILES.get('image')
-        category_name = request.POST.get('category', '')
-        ingredients_raw = request.POST.get('ingredients', '[]')
-        steps_raw = request.POST.get('steps', '[]')
-
-        # Xử lý JSON an toàn
-        try:
-            ingredients = json.loads(ingredients_raw) if ingredients_raw else []
-            steps = json.loads(steps_raw) if steps_raw else []
-        except json.JSONDecodeError:
-            ingredients = []
-            steps = []
-
-        # Kiểm tra dữ liệu bắt buộc
-        if not name or not cooking_time or not steps:
-            return HttpResponse("Thiếu dữ liệu bắt buộc: tên món, thời gian nấu hoặc các bước.", status=400)
-
-        # Chuyển cooking_time thành integer
-        try:
-            cooking_time = int(cooking_time)
-            if cooking_time <= 0:
-                raise ValueError("Thời gian nấu phải là số dương.")
-        except ValueError:
-            return HttpResponse("Thời gian nấu phải là một số nguyên dương.", status=400)
-        
-        # Xử lý danh mục (Category)
-        category = None
-        if category_name:
-            category, created = Category.objects.get_or_create(name=category_name)
-
-        # Tạo instructions từ steps dưới dạng JSON
-        instructions_list = [
-            {"step": i + 1, "instruction": step["description"]}
-            for i, step in enumerate(steps)
-        ]
-        instructions = json.dumps(instructions_list, ensure_ascii=False)  
-
-        # Lấy user hiện tại (nếu có đăng nhập)
-        author = request.user if request.user.is_authenticated else None
-
-        # Tạo Recipe
-        recipe = Recipe(
-            name=name,
-            description=description,
-            instructions=instructions,  
-            cook_time=cooking_time,
-            image=image,
-            category=category,
-            author=author
-        )
-        recipe.save()
-        # Xử lý Ingredients và RecipeIngredient
-        for item in ingredients:
-            ingredient_name = item.get('name')
-            quantity = item.get('quantity')
-            
-            if not ingredient_name or not quantity:
-                continue  # Bỏ qua nếu thiếu tên hoặc số lượng
-
-            # Tạo hoặc lấy Ingredient
-            ingredient, created = Ingredient.objects.get_or_create(name=ingredient_name)
-
-            # Tạo RecipeIngredient
-            RecipeIngredient.objects.create(
-                recipe=recipe,
-                ingredient=ingredient,
-                quantity=quantity
-            )
-
-        # Lưu thông báo vào session
-        request.session["recipe_message"] = "Bạn đã tạo món ăn thành công!"
-        request.session["recipe_status"] = "success"
-
-        return redirect("recipes:recipe_detail", recipe_id=recipe.id)
-
-class RecipeEdit(View):
-    def get(self, request, recipe_id):
+def get_create_or_edit_view(request, recipe_id=None):
+    context = {}
+    if recipe_id:
         recipe = get_object_or_404(Recipe, id=recipe_id)
         # Kiểm tra quyền chỉnh sửa (nếu cần)
         if recipe.author != request.user and not request.user.is_admin:
             return HttpResponse("Bạn không có quyền chỉnh sửa recipe này.", status=403)
-
-        # Lấy danh sách category và ingredient để hiển thị trong datalist
-        ingredients_list = list(Ingredient.objects.values_list('name', flat=True))
-        categorys = list(Category.objects.values_list('name', flat=True))
-
+        context['recipe_detailcategory_ids'] = list(recipe.category.values_list("id", flat=True))
+        
         # Parse instructions từ JSON sang list để hiển thị trong form
-        instructions = json.loads(recipe.instructions) if recipe.instructions else []
-
+        context['instructions'] = json.loads(recipe.instructions) if recipe.instructions else []
         # Lấy danh sách RecipeIngredient
-        recipe_ingredients = RecipeIngredient.objects.filter(recipe=recipe)
+        context['recipe_ingredients'] = RecipeIngredient.objects.filter(recipe=recipe)
+        context['recipe'] = recipe
 
-        return render(request, "recipes/recipe_edit.html", {
-            'recipe': recipe,
-            'ingredients': ingredients_list,
-            'categorys': categorys,
-            'instructions': instructions,
-            'recipe_ingredients': recipe_ingredients
-        })
-    
-    def post(self, request, recipe_id):
+    # Lấy danh sách category và ingredient để hiển thị trong datalist
+    context['ingredients'] = list(Ingredient.objects.values_list('name', flat=True))
+
+    return render(request, "recipes/recipe_edit.html", context=context)
+
+def post_create_or_edit(request, recipe_id=None):
+    if recipe_id:
         recipe = get_object_or_404(Recipe, id=recipe_id)
         # Kiểm tra quyền chỉnh sửa
         if recipe.author != request.user and not request.user.is_admin:
             return HttpResponse("Bạn không có quyền chỉnh sửa recipe này.", status=403)
 
-        # Lấy dữ liệu từ form
-        name = request.POST.get('name')
-        description = request.POST.get('description')
-        cooking_time = request.POST.get('cooking_time')
-        image = request.FILES.get('image')
-        category_name = request.POST.get('category', '')
-        ingredients_raw = request.POST.get('ingredients', '[]')
-        steps_raw = request.POST.get('steps', '[]')
+    # Lấy dữ liệu từ form
+    name = request.POST.get('name')
+    description = request.POST.get('description')
+    cooking_time = request.POST.get('cooking_time')
+    image = request.FILES.get('image')
+    detail_category_ids = json.loads(request.POST.get('detailcategory_ids', '[]'))
+    ingredients_raw = request.POST.get('ingredients', '[]')
+    steps_raw = request.POST.get('steps', '[]')
 
-        # Xử lý JSON
-        try:
-            ingredients = json.loads(ingredients_raw) if ingredients_raw else []
-            steps = json.loads(steps_raw) if steps_raw else []
-        except json.JSONDecodeError:
-            ingredients = []
-            steps = []
+    # Xử lý JSON
+    try:
+        ingredients = json.loads(ingredients_raw) if ingredients_raw else []
+        steps = json.loads(steps_raw) if steps_raw else []
+    except json.JSONDecodeError:
+        ingredients = []
+        steps = []
 
-        # Kiểm tra dữ liệu bắt buộc
-        if not name or not cooking_time or not steps:
-            return HttpResponse("Thiếu dữ liệu bắt buộc.", status=400)
+    # Kiểm tra dữ liệu bắt buộc
+    if not name or not cooking_time or not steps:
+        return HttpResponse("Thiếu dữ liệu bắt buộc.", status=400)
 
-        # Chuyển cooking_time thành integer
-        try:
-            cooking_time = int(cooking_time)
-            if cooking_time <= 0:
-                raise ValueError
-        except ValueError:
-            return HttpResponse("Thời gian nấu phải là số nguyên dương.", status=400)
+    # Chuyển cooking_time thành integer
+    try:
+        cooking_time = int(cooking_time)
+        if cooking_time <= 0:
+            raise ValueError
+    except ValueError:
+        return HttpResponse("Thời gian nấu phải là số nguyên dương.", status=400)
 
-        # Cập nhật Category
-        category = None
-        if category_name:
-            category, _ = Category.objects.get_or_create(name=category_name)
 
-        # Cập nhật instructions
-        instructions_list = [{"step": i + 1, "instruction": step["description"]} for i, step in enumerate(steps)]
-        instructions = json.dumps(instructions_list, ensure_ascii=False)
-
+    # Cập nhật instructions
+    instructions_list = [{"step": i + 1, "instruction": step["description"]} for i, step in enumerate(steps)]
+    instructions = json.dumps(instructions_list, ensure_ascii=False)
+    # Xử lý detail categories
+    detail_category_ids = [int(id) for id in detail_category_ids if id != '']
+    if recipe_id:
         # Cập nhật Recipe
         recipe.name = name
         recipe.description = description
@@ -239,23 +146,49 @@ class RecipeEdit(View):
         recipe.cook_time = cooking_time
         if image:
             recipe.image = image
-        recipe.category = category
-        recipe.save()
+    else:
+        # # Tạo Recipe
+        author = request.user if request.user.is_authenticated else None
+        recipe = Recipe(
+            name=name,
+            description=description,
+            instructions=instructions,  
+            cook_time=cooking_time,
+            image=image,
+            author=author
+        )
+    recipe.save()
+    recipe.category.set(detail_category_ids)
+    # Xóa RecipeIngredient cũ và thêm mới
+    RecipeIngredient.objects.filter(recipe=recipe).delete()
+    for item in ingredients:
+        ingredient_name = item.get('name')
+        quantity = item.get('quantity')
+        if ingredient_name and quantity:
+            ingredient, _ = Ingredient.objects.get_or_create(name=ingredient_name)
+            RecipeIngredient.objects.create(recipe=recipe, ingredient=ingredient, quantity=quantity)
 
-        # Xóa RecipeIngredient cũ và thêm mới
-        RecipeIngredient.objects.filter(recipe=recipe).delete()
-        for item in ingredients:
-            ingredient_name = item.get('name')
-            quantity = item.get('quantity')
-            if ingredient_name and quantity:
-                ingredient, _ = Ingredient.objects.get_or_create(name=ingredient_name)
-                RecipeIngredient.objects.create(recipe=recipe, ingredient=ingredient, quantity=quantity)
+    # Lưu thông báo vào session
+    mess = 'cập nhật' if recipe_id else 'tạo'
+    request.session["recipe_message"] = f"Bạn đã {mess} món ăn thành công!"
+    request.session["recipe_status"] = "success"
 
-        # Lưu thông báo vào session
-        request.session["recipe_message"] = "Bạn đã cập nhập món ăn thành công!"
-        request.session["recipe_status"] = "success"
+    return redirect("recipes:recipe_detail", recipe_id=recipe.id)
 
-        return redirect("recipes:recipe_detail", recipe_id=recipe.id)
+class RecipeCreate(View):
+    
+    def get(self, request):
+        return get_create_or_edit_view(request)
+
+    def post(self, request):
+        return post_create_or_edit(request)
+
+class RecipeEdit(View):
+    def get(self, request, recipe_id=None):
+        return get_create_or_edit_view(request, recipe_id=recipe_id)
+    
+    def post(self, request, recipe_id=None):
+        return post_create_or_edit(request, recipe_id=recipe_id)
     
 class RecipePersonal(View):
     def get(self, request):

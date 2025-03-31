@@ -18,6 +18,7 @@ class HomeView(View):
             recipes.append(random.choice(recipes))  # Lặp lại ngẫu nhiên nếu chưa đủ
         context = {"random_recipes": recipes[:8]}
         return render(request, "homepage/index.html", context)
+    
 class LoginView(View):
     template_name = "homepage/login.html"
 

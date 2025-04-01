@@ -12,5 +12,4 @@ urlpatterns = [
     # path("recipe_search_category/", views.RecipeListSearchCategory.as_view(), name="recipe_search_category"),
     path('showimage/', views.ShowImage.as_view(), name="showimage"),
     path("clear_recipe_success/", views.clear_recipe_success, name="clear_recipe_success"),
-    path("recipe_personal/", views.RecipePersonal.as_view(), name="recipe_personal"),
 ]

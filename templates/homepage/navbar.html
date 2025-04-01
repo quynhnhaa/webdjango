@@ -167,7 +167,9 @@
                                       </svg></a>
                                         <ul class="dropdown">
                                             {% if request.user.is_authenticated %}
-                                                <li><a href="{% url 'recipes:recipe_personal' %}">Bếp Cá Nhân</a></li>
+                                            
+                                            <li><a href="{% url 'recipes:recipe_list' %}?personal=1">Bếp Cá Nhân</a></li>
+                                                {% comment %} <li><a href="{% url 'recipes:recipe_personal' %}">Bếp Cá Nhân</a></li> {% endcomment %}
                                                 <li><a href="{% url 'core:logout' %}">Đăng Xuất</a></li>
                                             {% else %}
                                                 <li><a href="{% url 'core:login' %}">Đăng Nhập</a></li>

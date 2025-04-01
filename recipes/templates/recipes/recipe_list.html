@@ -12,7 +12,18 @@
 
 
 {% block content %}
-
+    {% if messages %}
+    {% for message in messages %}
+        <script>
+            Swal.fire({
+                title: "{% if message.tags == 'success' %}Thành công{% elif message.tags == 'error' %}Lỗi{% else %}Thông báo{% endif %}",
+                text: "{{ message }}",
+                icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}",
+                confirmButtonText: "OK"
+            });
+        </script>
+    {% endfor %}
+    {% endif %}
     <!-- Search Wrapper -->
     <div class="search-wrapper">
         <!-- Close Btn -->
@@ -74,6 +85,9 @@
                                         <a href="{% url 'recipes:recipe_detail' recipe.id %}" class="btn delicious-btn mt-30">Xem Thêm</a>
                                         {% if personal != -1 %}
                                             <a href="{% url 'recipes:recipe_edit' recipe.id %}" class="btn delicious-btn btn-4 mt-30">Chỉnh Sửa</a>
+                                            <a href="#" onclick="confirmDelete('{% url 'recipes:recipe_delete' recipe.id %}', window.location.href)" class="btn delicious-btn btn-4 mt-30">Xoá</a>
+
+
                                         {% endif %}
                                     </div>
                                 </div>
@@ -86,18 +100,6 @@
 
 
                     <nav aria-label="Page navigation">
-                        {% comment %} <ul class="pagination">
-                            {% if recipes.has_previous %}
-                                 <li class="page-item"><a class="page-link" href="?page=1">|First| </a></li> 
-                                <li class="page-item"><a class="page-link" href="?page={{ recipes.previous_page_number }}"> |Previous| </a></li>
-                            {% endif %}
-                            <li class="page-item active"><a class="page-link" href="#">{{ recipes.number|stringformat:"02d" }} </a></li>
-                            {% if recipes.has_next %}
-                                <li class="page-item"><a class="page-link" href="?page={{ recipes.next_page_number }}"> |Next| </a></li>
-                                <li class="page-item"><a class="page-link" href="?page={{ recipes.paginator.num_pages }}"> |Last| </a></li>
-                            {% endif %}
-
-                        </ul> {% endcomment %}
                         <ul class="pagination">
                             {% with request.GET.urlencode as query_params %}
                                 {% if recipes.has_previous %}
@@ -216,6 +218,7 @@
 {% endblock %}
 
 {% block jsblock %}
+
     <!-- ##### All Javascript Files ##### -->
     <!-- jQuery-2.2.4 js -->
     <script src=" {% static 'homepage/js/jquery/jquery-2.2.4.min.js' %}"></script>
@@ -229,8 +232,28 @@
     <script src=" {% static 'homepage/js/active.js' %}"></script>
 
     <script src=" {% static 'homepage/js/search.js' %}"></script>
+    <!-- Cài đặt SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        function confirmDelete(deleteUrl, returnUrl) {
+            Swal.fire({
+                title: "Bạn có chắc chắn muốn xoá?",
+                text: "Hành động này không thể hoàn tác!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "Xóa ngay",
+                cancelButtonText: "Hủy"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Chuyển hướng với tham số ?next=
+                    window.location.href = deleteUrl + "?next=" + encodeURIComponent(returnUrl);
+                }
+            });
+        }        
+        
         function updateURL() {
             let url = new URL(window.location);
             let params = new URLSearchParams(url.search);

@@ -9,7 +9,9 @@ from django.contrib import messages
 from django.http import JsonResponse
 import json
 from django.db.models import Q
-
+from django.http import HttpResponseRedirect
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
@@ -202,6 +204,22 @@ def post_create_or_edit(request, recipe_id=None):
     request.session["recipe_status"] = "success"
 
     return redirect("recipes:recipe_detail", recipe_id=recipe.id)
+
+
+def recipe_delete(request, recipe_id):
+    recipe = get_object_or_404(Recipe, id=recipe_id)
+
+    # Kiểm tra quyền sở hữu (nếu cần)
+    if recipe.author != request.user:
+        messages.error(request, "Bạn không có quyền xóa công thức này!")
+        return redirect("recipes:recipe_list")
+
+    recipe.delete()
+    messages.success(request, "Công thức đã được xóa thành công!")
+
+    # Lấy URL trước đó từ request
+    next_url = request.GET.get("next", "recipes:recipe_list")
+    return HttpResponseRedirect(next_url)
 
 class RecipeCreate(View):
     

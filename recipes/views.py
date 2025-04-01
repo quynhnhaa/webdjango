@@ -8,6 +8,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.http import JsonResponse
 import json
+from django.db.models import Q
 
 
 # Create your views here.
@@ -35,18 +36,46 @@ class RecipeDetail(View):
 
 class RecipeListView(View):
     def get(self, request):
+        query = request.GET.get("search", "").strip()
+        selected_detailcategories = request.GET.getlist("detailcategory")  # Lấy danh sách các danh mục chi tiết được chọn
+        selected_detailcategories = [str(id) for id in selected_detailcategories]
+
+        personal = request.GET.get("personal", "-1")  # Lấy personal, mặc định -1
+        try:
+            personal = int(personal)
+        except ValueError:
+            personal = -1
+
         recipes = Recipe.objects.all()  
+        if query:
+            recipes = recipes.filter(name__icontains=query)  # Tìm kiếm theo tên món ăn
+
+        # Lọc theo danh mục chi tiết nếu có
+        if selected_detailcategories:
+            detail_query = Q()  
+            for detail_id in selected_detailcategories:
+                detail_query &= Q(category__id=detail_id)  
+            
+            recipes = recipes.filter(detail_query) 
+        
+        if request.user.is_authenticated and personal != -1:
+            recipes = recipes.filter(author=request.user)
+
         paginator = Paginator(recipes, 3)  
 
         page_number = request.GET.get("page")  # Lấy số trang từ URL (?page=2)
         page_obj = paginator.get_page(page_number)  # Lấy trang tương ứng
 
+        
+        
         context = {
             "recipes": page_obj,  # Danh sách món ăn của trang hiện tại
             "page_obj": page_obj,  # Đối tượng phân trang
+            "query": query, 
+            "selected_detailcategories": selected_detailcategories,
+            "personal": personal
         }
         return render(request, "recipes/recipe_list.html", context)
-        # return render(request, "recipes/recipe_list.html")
 
 class RecipeListSearchName(View):
     def get(self, request):
@@ -190,12 +219,12 @@ class RecipeEdit(View):
     def post(self, request, recipe_id=None):
         return post_create_or_edit(request, recipe_id=recipe_id)
     
-class RecipePersonal(View):
-    def get(self, request):
-        recipes = Recipe.objects.filter(author=request.user)
-        context = pagination(request, recipes)
-        context["user"] = request.user
-        return render(request, "recipes/recipe_personal.html", context)
+# class RecipePersonal(View):
+#     def get(self, request):
+#         recipes = Recipe.objects.filter(author=request.user)
+#         context = pagination(request, recipes)
+#         context["user"] = request.user
+#         return render(request, "recipes/recipe_personal.html", context)
 
 
 def clear_recipe_success(request):

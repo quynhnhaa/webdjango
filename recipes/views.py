@@ -23,13 +23,12 @@ class RecipeDetail(View):
         recipe = get_object_or_404(Recipe, id=recipe_id)
         instructions = json.loads(recipe.instructions)
         reviews = recipe.review_set.all()
-        categories = ', '.join(recipe.category.values_list('name', flat=True))
-        print(categories)
+        recipe_categories = ', '.join(recipe.category.values_list('name', flat=True))
         # Kiểm tra xem có thông báo nào không
         recipe_message = request.session.pop("recipe_message", None)  
         recipe_status = request.session.pop("recipe_status", None)  # success / info / error
 
-        context = {"recipe": recipe, "instructions": instructions, "reviews": reviews, "recipe_status": recipe_status, "recipe_message": recipe_message, "categories" : categories}
+        context = {"recipe": recipe, "instructions": instructions, "reviews": reviews, "recipe_status": recipe_status, "recipe_message": recipe_message, "recipe_categories" : recipe_categories}
         return render(request, "recipes/recipe_detail.html", context)  
 
 

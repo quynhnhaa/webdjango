@@ -30,8 +30,9 @@
         <div class="container">
             <div class="row">
                 <div class="col-12">
-                    <form action="#" method="post">
-                        <input type="search" name="search" placeholder="Type any keywords...">
+                    <form action="{% url 'recipes:recipe_list' %}" method="get">
+                        {% csrf_token %}
+                        <input type="search" name="search" placeholder="Type any keywords..." value="{{ query }}">
                         <button type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
                     </form>
                 </div>
@@ -273,4 +274,7 @@
     <script src="{% static 'homepage/js/plugins/plugins.js' %}"></script>
     <!-- Active js -->
     <script src="{% static 'homepage/js/active.js' %}"></script>
+
+    <script src=" {% static 'homepage/js/search.js' %}"></script>
+
 {% endblock %}

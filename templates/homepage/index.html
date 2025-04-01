@@ -83,7 +83,7 @@
                             <!-- Content -->
                             <div class="top-cta-content">
                                 <h3>{{random_recipes.7.name}}</h3>
-                                <h6>{{random_recipes.7.category.name}}</h6>
+                                <h6>{{random_recipes.7.category.first.name}}</h6>
                                 <a href="{% url 'recipes:recipe_detail' random_recipes.7.id %}" class="btn delicious-btn">Xem Công Thức</a>
                             </div>
                         </div>
@@ -95,7 +95,7 @@
                             <!-- Content -->
                             <div class="top-cta-content">
                                 <h3>{{random_recipes.6.name}}</h3>
-                                <h6>{{random_recipes.6.category.name}}</h6>
+                                <h6>{{random_recipes.6.category.first.name}}</h6>
                                 <a href="{% url 'recipes:recipe_detail' random_recipes.6.id %}" class="btn delicious-btn">Xem Công Thức</a>
                             </div>
                         </div>
@@ -150,9 +150,9 @@
                     <div class="col-12">
                         <!-- Cta Content -->
                         <div class="cta-content text-center">
-                            <h2>Gluten Free Receipies</h2>
-                            <p>Fusce nec ante vitae lacus aliquet vulputate. Donec scelerisque accumsan molestie. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Cras sed accumsan neque. Ut vulputate, lectus vel aliquam congue, risus leo elementum nibh</p>
-                            <a href="#" class="btn delicious-btn">Discover all the receipies</a>
+                            <h2>Kho công thức nấu ăn phong phú, đa dạng</h2>
+                            <p>Hãy trải nghiệm những công thức đặc biệt với hương vị tuyệt vời. Mỗi món ăn đều được chế biến tinh tế để mang đến sự cân bằng hoàn hảo giữa dinh dưỡng và hương vị.</p>
+                            <a href="{% url 'recipes:recipe_list' %}" class="btn delicious-btn">Khám phá tất cả món ăn</a>
                         </div>
                     </div>
                 </div>

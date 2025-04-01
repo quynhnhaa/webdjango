@@ -83,7 +83,7 @@
                             <!-- Nav Start -->
                             <div class="classynav">
                                 <ul>
-                                    <li class="active"><a href="{% url 'core:index' %}">Trang Chủ</a></li>
+                                    <li class="{% if request.path == '/' %}active{% endif %}"><a href="{% url 'core:index' %}">Trang Chủ</a></li>
                                     <style>
                                         .megamenu {
                                             display: flex;
@@ -120,7 +120,7 @@
                                             </div>
                                         </div>
                                     </li>
-                                    <li><a href="{% url 'recipes:recipe_list' %}">Khám Phá Món Ngon</a></li>
+                                    <li class="{% if recipes %}active{% endif %}"><a href="{% url 'recipes:recipe_list' %}">Khám Phá Món Ngon</a></li>
                                     {% comment %} <li><a href="{% url 'recipes:recipe_create' %}" style="background-color: rgb(255 153 51 )">Viết Món Mới</a></li> {% endcomment %}
                                     {% comment %} <li><a href="{% url 'recipes:recipe_create' %}" style="background-color: rgb(255 153 51 )">Tạo Món Mới</a></li> {% endcomment %}
                                     <li>

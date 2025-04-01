@@ -32,7 +32,7 @@
                 <div class="col-12">
                     <form action="{% url 'recipes:recipe_list' %}" method="get">
                         {% csrf_token %}
-                        <input type="search" name="search" placeholder="Type any keywords..." value="{{ query }}">
+                        <input type="search" name="search" placeholder="Nhập tên món ăn bạn muốn tìm" value="{{ query }}">
                         <button type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
                     </form>
                 </div>
@@ -127,7 +127,7 @@
                                 <i class="fa fa-star" aria-hidden="true"></i>
                                 <i class="fa fa-star-o" aria-hidden="true"></i>
                             </div>
-                            <a href="#" class="btn delicious-btn">For Begginers</a>
+                            <!-- <a href="#" class="btn delicious-btn">For Begginers</a> -->
                         </div>
                     </div> 
                 </div>

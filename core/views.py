@@ -11,10 +11,6 @@ from django.contrib import messages
 
 class HomeView(View):
     def get(self, request):
-
-        # recipe_ids = Recipe.objects.values_list('id', flat=True)
-        # random_ids = random.sample(list(recipe_ids), min(len(recipe_ids), 8))
-        # random_recipes = Recipe.objects.filter(id__in=random_ids)
         recipes = list(Recipe.objects.order_by('?'))  # Lấy danh sách ngẫu nhiên
         while len(recipes) < 8:
             recipes.append(random.choice(recipes))  # Lặp lại ngẫu nhiên nếu chưa đủ

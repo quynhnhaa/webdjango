@@ -46,3 +46,15 @@ Recipe.objects.get_or_create(
 
 
 ---
+
+## 4. Để chạy lại file populate_db(trong trường hợp đã có dữ liệu) 
+ Đầu tiên cần xoá dữ liệu cũ
+ ```sh
+ python3 manage.py flush
+ ```
+Sau đó chạy lệnh sau để khởi tại dữ liệu ban đầu
+ 
+ ```sh
+ python3 manage.py populate_db
+ ```
+---

@@ -187,18 +187,19 @@ for cat_name, details in categories.items():
         DetailCategory.objects.get_or_create(name=detail_name, category=category)
 print("Đã thêm danh mục và chi tiết danh mục.")
 
-# 3. Tạo nguyên liệu (Ingredient)
-ingredients = [
-    "Thịt gà", "Thịt bò", "Thịt heo", "Đậu hũ", "Cà rốt", "Khoai tây",
-    "Hành tím", "Tỏi", "Gừng", "Sữa đặc", "Bột mì", "Trứng gà",
-    "Nước mắm", "Dầu ăn", "Ớt", "Hành lá", "Bí đỏ", "Nấm rơm",
-    "Cải xanh", "Mì ống", "Phô mai", "Cá hồi", "Tôm", "Đường",
-    "Muối", "Tiêu", "Nước tương", "Bắp cải", "Dưa leo", "Xúc xích",
-    "Cà chua", "Sữa tươi", "Bột chiên giòn", "Lá chanh", "Sả"
-]
-for name in ingredients:
-    Ingredient.objects.get_or_create(name=name)
-print("Đã thêm nguyên liệu.")
+########## TẠO NGUYÊN LIỆU ĐƯỢC THÊM VÀO Ở RECIPEINGREDIENT (ĐÂY KO CẦN) ###############
+# # 3. Tạo nguyên liệu (Ingredient)
+# ingredients = [
+#     "Thịt gà", "Thịt bò", "Thịt heo", "Đậu hũ", "Cà rốt", "Khoai tây",
+#     "Hành tím", "Tỏi", "Gừng", "Sữa đặc", "Bột mì", "Trứng gà",
+#     "Nước mắm", "Dầu ăn", "Ớt", "Hành lá", "Bí đỏ", "Nấm rơm",
+#     "Cải xanh", "Mì ống", "Phô mai", "Cá hồi", "Tôm", "Đường",
+#     "Muối", "Tiêu", "Nước tương", "Bắp cải", "Dưa leo", "Xúc xích",
+#     "Cà chua", "Sữa tươi", "Bột chiên giòn", "Lá chanh", "Sả"
+# ]
+# for name in ingredients:
+#     Ingredient.objects.get_or_create(name=name)
+# print("Đã thêm nguyên liệu.")
 
 # 4. Tạo công thức (Recipe) và gán DetailCategory
 admin_user = User.objects.get(username="admin")
@@ -448,7 +449,7 @@ recipe_ingredients = [
 ]
 for ri in recipe_ingredients:
     recipe = Recipe.objects.get(name=ri["recipe"])
-    ingredient = Ingredient.objects.get(name=ri["ingredient"])
+    ingredient = Ingredient.objects.get_or_create(name=ri["ingredient"])
     RecipeIngredient.objects.get_or_create(
         recipe=recipe,
         ingredient=ingredient,

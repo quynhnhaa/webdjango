@@ -11,6 +11,8 @@ django.setup()
 
 import csv
 import ast
+import json
+from collections import OrderedDict
 from users.models import User
 from recipes.models import Category, DetailCategory, Ingredient, Recipe, RecipeIngredient
 from reviews.models import Review
@@ -74,6 +76,8 @@ def load_recipes():
                 defaults={
                     "description": row["description"],
                     "cook_time": int(row["cook_time"]) if row["cook_time"].isdigit() else None,
+                    "level": row["level"] if row["level"] else None,
+                    "servings": int(row["servings"]) if row["servings"].isdigit() else None,
                     "instructions": row["instructions"],
                     "image": row["image_path"] if row["image_path"] else None,
                     "author": admin_user,
@@ -101,15 +105,9 @@ def load_recipe_ingredients():
 
 def load_categories():
     print("🔄 Đang tạo danh mục món ăn...")
-    categories = {
-        "Theo bữa ăn": ["Bữa sáng", "Bữa trưa", "Bữa tối", "Bữa xế", "Ăn khuya"],
-        "Theo vùng miền/quốc gia": ["Món Việt Nam", "Món Trung Quốc", "Món Nhật Bản", "Món Hàn Quốc", "Món Âu", "Món Mỹ", "Món Ấn Độ", "Món Địa Trung Hải"],
-        "Theo phương pháp chế biến": ["Món luộc", "Món hấp", "Món chiên", "Món nướng", "Món xào", "Món kho/rim", "Món gỏi/salad", "Món lẩu"],
-        "Theo đặc điểm dinh dưỡng": ["Món chay", "Món giàu protein", "Món ít carb/Keto", "Món ít calo", "Món giàu chất xơ"],
-        "Theo hình thức ăn uống": ["Món ăn vặt", "Món tráng miệng", "Món ăn đường phố", "Món nhà hàng", "Món ăn nhanh"],
-        "Theo dịp đặc biệt": ["Món ngày Tết", "Món Giáng Sinh", "Món đám cưới", "Món sinh nhật"],
-        "Theo độ khó nấu": ["Món đơn giản", "Món trung bình", "Món phức tạp"]
-    }
+    with open("data/categories.json", "r", encoding="utf-8") as f:
+        categories = json.load(f, object_pairs_hook=OrderedDict)
+
     for key, values in categories.items():
         category, _ = Category.objects.get_or_create(name=key)
         for value in values:
@@ -124,7 +122,6 @@ def load_reviews():
             try:
                 recipe = Recipe.objects.get(name=row["recipe"])
 
-                # Chuyển chuỗi dictionary thành dict thật
                 user_info = ast.literal_eval(row["user"])
                 username = user_info["username"]
 
@@ -161,15 +158,24 @@ def assign_categories_to_recipes():
             if category_name not in categories_recipes[recipe_name]:
                 categories_recipes[recipe_name].append(category_name)
 
-    # Liên kết công thức với danh mục
     for recipe_name, category_names in categories_recipes.items():
         try:
-            recipe = Recipe.objects.get(name=recipe_name)            
-            category_objects = [DetailCategory.objects.get(name=category_name) for category_name in category_names]
-            recipe.category.set(category_objects)
-            print(f"✅ Đã liên kết công thức '{recipe_name}' với các danh mục {', '.join(category_names)}")
-        except Exception as e:
-            print(f"❌ Lỗi khi liên kết công thức '{recipe_name}' với danh mục: {e}")
+            recipe = Recipe.objects.get(name=recipe_name)
+
+            category_objects = []
+            for category_name in category_names:
+                category_obj = DetailCategory.objects.filter(name=category_name).first()
+                if category_obj:
+                    category_objects.append(category_obj)
+
+            if category_objects:
+                recipe.category.set(category_objects)
+                print(f"✅ Đã liên kết công thức '{recipe_name}' với các danh mục: {[c.name for c in category_objects]}")
+            else:
+                print(f"❌ Không tìm thấy danh mục hợp lệ cho công thức '{recipe_name}'")
+
+        except Recipe.DoesNotExist:
+            print(f"❌ Không tìm thấy công thức '{recipe_name}'")
 
 if __name__ == "__main__":
     print("Bắt đầu import dữ liệu từ các file CSV...")

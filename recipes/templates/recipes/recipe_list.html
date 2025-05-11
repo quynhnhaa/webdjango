@@ -101,38 +101,14 @@
 
                     <nav aria-label="Page navigation">
                         <ul class="pagination">
-                            {% comment %} {% with request.GET.urlencode as query_params %}
-                                {% if recipes.has_previous %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page=1&{{ query_params }}">|First|</a>
-                                    </li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ recipes.previous_page_number }}&{{ query_params }}">|Previous|</a>
-                                    </li>
-                                {% endif %}
-                        
-                                <li class="page-item active">
-                                    <a class="page-link" href="#">{{ recipes.number|stringformat:"02d" }}</a>
-                                </li>
-                        
-                                {% if recipes.has_next %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ recipes.next_page_number }}&{{ query_params }}">|Next|</a>
-                                    </li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ recipes.paginator.num_pages }}&{{ query_params }}">|Last|</a>
-                                    </li>
-                                {% endif %}
-                            {% endwith %} {% endcomment %}
                             {% with request.GET.urlencode as query_params %}
-                            {% if query_params %}
                                 {% with query_params|cut:"page="|cut:"&page=" as clean_params %}
                                     {% if recipes.has_previous %}
                                         <li class="page-item">
-                                            <a class="page-link" href="?page=1{% if clean_params %}&{{ clean_params }}{% endif %}">|First|</a>
+                                            <a class="page-link" href="?page=1{% if clean_params %}&{{ clean_params }}{% endif %}" onclick="cleanAndNavigate(this.href); return false;">|First|</a>
                                         </li>
                                         <li class="page-item">
-                                            <a class="page-link" href="?page={{ recipes.previous_page_number }}{% if clean_params %}&{{ clean_params }}{% endif %}">|Previous|</a>
+                                            <a class="page-link" href="?page={{ recipes.previous_page_number }}{% if clean_params %}&{{ clean_params }}{% endif %}" onclick="cleanAndNavigate(this.href); return false;">|Previous|</a>
                                         </li>
                                     {% endif %}
 
@@ -142,52 +118,15 @@
 
                                     {% if recipes.has_next %}
                                         <li class="page-item">
-                                            <a class="page-link" href="?page={{ recipes.next_page_number }}{% if clean_params %}&{{ clean_params }}{% endif %}">|Next|</a>
+                                            <a class="page-link" href="?page={{ recipes.next_page_number }}{% if clean_params %}&{{ clean_params }}{% endif %}" onclick="cleanAndNavigate(this.href); return false;">|Next|</a>
                                         </li>
                                         <li class="page-item">
-                                            <a class="page-link" href="?page={{ recipes.paginator.num_pages }}{% if clean_params %}&{{ clean_params }}{% endif %}">|Last|</a>
+                                            <a class="page-link" href="?page={{ recipes.paginator.num_pages }}{% if clean_params %}&{{ clean_params }}{% endif %}" onclick="cleanAndNavigate(this.href); return false;">|Last|</a>
                                         </li>
                                     {% endif %}
                                 {% endwith %}
-                            {% else %}
-                                {% if recipes.has_previous %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page=1">|First|</a>
-                                    </li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ recipes.previous_page_number }}">|Previous|</a>
-                                    </li>
-                                {% endif %}
-
-                                <li class="page-item active">
-                                    <a class="page-link" href="#">{{ recipes.number|stringformat:"02d" }}</a>
-                                </li>
-
-                                {% if recipes.has_next %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ recipes.next_page_number }}">|Next|</a>
-                                    </li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ recipes.paginator.num_pages }}">|Last|</a>
-                                    </li>
-                                {% endif %}
-                            {% endif %}
-                        {% endwith %}
-
-                            {% comment %} {% if recipes.has_previous %}
-                            <li class="page-item"><a class="page-link" href="?page=1">|First| </a></li> 
-                           <li class="page-item"><a class="page-link" href="?page={{ recipes.previous_page_number }}"> |Previous| </a></li>
-                       {% endif %}
-                       <li class="page-item active"><a class="page-link" href="#">{{ recipes.number|stringformat:"02d" }} </a></li>
-                       {% if recipes.has_next %}
-                           <li class="page-item"><a class="page-link" href="?page={{ recipes.next_page_number }}"> |Next| </a></li>
-                           <li class="page-item"><a class="page-link" href="?page={{ recipes.paginator.num_pages }}"> |Last| </a></li>
-                       {% endif %} {% endcomment %}
-
-                       {% comment %} <li class="page-item"><a class="page-link" href="#">03.</a></li> {% endcomment %}
-                            
+                            {% endwith %}
                         </ul>
-                        
                     </nav>
                 </div>
 
@@ -316,21 +255,46 @@
             });
         }        
         
+        function cleanAndNavigate(url) {
+            // Tạo URL object từ URL được truyền vào
+            let urlObj = new URL(url);
+            let params = new URLSearchParams(urlObj.search);
+            
+            // Lấy các tham số cần giữ lại
+            let page = params.get('page');
+            let detailcategories = params.getAll('detailcategory');
+            
+            // Tạo URL mới với các tham số đã được làm sạch
+            let newUrl = '?page=' + page;
+            detailcategories.forEach(category => {
+                newUrl += '&detailcategory=' + category;
+            });
+            
+            // Chuyển hướng đến URL mới
+            window.location.href = newUrl;
+        }
+
         function updateURL() {
             let url = new URL(window.location);
             let params = new URLSearchParams(url.search);
-        
-            // Xóa tất cả 'detailcategory' hiện có trong URL
-            params.delete('detailcategory');
-        
-            // Lấy tất cả radio button đang được chọn và thêm vào URL
-            document.querySelectorAll('input[type="checkbox"]:checked').forEach(function(checkedRadio) {
-                params.append('detailcategory', checkedRadio.value);
+            
+            // Lấy số trang hiện tại
+            let currentPage = params.get('page') || '1';
+            
+            // Xóa tất cả các tham số hiện có
+            params = new URLSearchParams();
+            
+            // Thêm lại số trang
+            params.set('page', currentPage);
+            
+            // Thêm các danh mục được chọn
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(function(checkbox) {
+                params.append('detailcategory', checkbox.value);
             });
-        
-            // Cập nhật URL mà không tải lại trang
+            
+            // Cập nhật URL và tải lại trang
             window.history.replaceState({}, '', '?' + params.toString());
-            window.location.reload(); 
+            window.location.reload();
         }
          
     </script>        

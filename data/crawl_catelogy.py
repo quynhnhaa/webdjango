@@ -33,7 +33,6 @@ try:
         EC.presence_of_element_located((By.CLASS_NAME, "advanced-group"))
     )
 
-    # Tìm các accordion
     accordion_buttons = driver.find_elements(By.XPATH, "//button[.//span[contains(@class, 'icon icon-[ph--caret-down-fill]')]]")
 
     for button in accordion_buttons:
@@ -50,7 +49,6 @@ try:
 
         accordion_body_id = button.get_attribute("aria-controls")
 
-        # Click để mở accordion
         driver.execute_script("arguments[0].click();", button)
 
         try:
@@ -58,7 +56,6 @@ try:
                 EC.presence_of_element_located((By.ID, accordion_body_id))
             )
         except Exception as e:
-            print(f"Không tìm thấy nội dung accordion (ID={accordion_body_id}): {str(e)}")
             continue
 
         subcategory_elements = accordion_body.find_elements(By.CSS_SELECTOR, "label")
@@ -78,15 +75,12 @@ try:
 finally:
     driver.quit()
 
-# ✅ Thêm mục "Khác" vào cuối
 categories["Khác"] = ["Khác"]
 
-# Lưu vào file
 output_file = "data/categories.json"
 with open(output_file, "w", encoding="utf-8") as f:
     json.dump(categories, f, ensure_ascii=False, indent=2)
-    print(f"✅ Đã lưu danh mục vào {output_file}")
+    print(f"Đã lưu danh mục vào {output_file}")
 
-# Hiển thị kết quả
 from pprint import pprint
 pprint(dict(categories))

@@ -45,8 +45,11 @@ class CF(object):
             self.mu[n] = m
 
             self.Ybar_data[ids, 2] = ratings - self.mu[n]
+            print("Mean rating:", self.mu[n])
+
+        
         self.Ybar_data = np.array(self.Ybar_data, dtype=np.float64)
-        # print(self.Ybar_data)
+        print("Normalized ratings:", self.Ybar_data[ids, 2])
     
         #Transform the data into a matrix
         self.Ybar = sparse.coo_matrix((self.Ybar_data[:,2], (self.Ybar_data[:, 1], self.Ybar_data[:, 0] )), (self.n_items, self.n_users))
@@ -64,18 +67,20 @@ class CF(object):
         self.refresh()
 
     def __pred(self, u, i, normalized=1):
-        ids = np.where(self.Y_data[:,1] == i)[0].astype(np.int32)
+        ids = np.where(self.Y_data[:, 1] == i)[0].astype(np.int32)
+        if len(ids) == 0: 
+            return self.mu[u] if not normalized else 0
         users_rated_i = self.Y_data[ids, 0].astype(np.int32)
-
         sim = self.S[u, users_rated_i]
-    
-        a= np.argsort(sim)[-self.K:]
+        a = np.argsort(sim)[-min(self.K, len(sim)):] 
         nearest_r = sim[a]
         r = self.Ybar[i, users_rated_i[a]]
-
+        denominator = np.abs(nearest_r.sum()) + 1e-8
+        if denominator < 0.01:  
+            return self.mu[u] if not normalized else 0
         if normalized:
-            return (r*nearest_r).sum() / (np.abs(nearest_r.sum()) + 1e-8)
-        return (r*nearest_r).sum() / (np.abs(nearest_r.sum()) + 1e-8) + self.mu[u]
+            return (r * nearest_r).sum() / denominator
+        return (r * nearest_r).sum() / denominator + self.mu[u]
     
     def pred(self, u, i, normalized = 1):
         if self.uuCF: return self.__pred(u, i, normalized)

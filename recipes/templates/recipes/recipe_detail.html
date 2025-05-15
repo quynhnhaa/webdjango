@@ -123,7 +123,7 @@
                             <h2>{{ recipe.name}}</h2>
                             <div class="receipe-duration">
                                 <p><strong style="color: black">Thời gian nấu:</strong> {{ recipe.cook_time }} phút</p>
-                                <p><strong style="color: black">Danh mục:</strong> {{ recipe_categories }} </p>
+                                <p><strong style="color: black">Danh mục:</strong> {{ categories }} </p>
                                 <p><strong style="color: black">Mô tả:</strong> {{ recipe.description }} </p>
 
                             </div>
@@ -179,7 +179,7 @@
                         </div>
                         {% for review in reviews %}
                             <div class="single-feature-area mb-30">
-                                <div class="d-flex align-items-center mb-30 ml-10" style="max-height: 20px;">
+                                <div class="d-flex align-items-center mb-30 ml-10" style="max-height: 20px; margin-left: -10px;">
                                     <img src="{% static 'homepage/img/core-img/hamburger2.png' %}" alt="" style="max-height: 30px">
                                     <div>
                                         <h5 style="display: inline-block; margin-right: 10px; padding-left: 15px;">{{ review.user.username }}</h5> 
@@ -188,12 +188,12 @@
                                 
                                 </div>
                                 <p style="margin-left: 37px; margin-top: -25px;">{{ review.created_at}}</p>
-                                <p> {{review.comment}}</p>
+                                <p style="margin-left: 37px;"> {{review.comment}}</p>
                             </div>
                         {% endfor %}
 
                         <div class="single-feature-area mb-30">
-                            <div class="d-flex align-items-center mb-30 ml-10" style="max-height: 20px;">
+                            <div class="d-flex align-items-center mb-30 ml-10" style="max-height: 20px; margin-left: -10px;">
                                 <img src="{% static 'homepage/img/core-img/salad.png' %}" alt="" style="max-height: 30px">
                                 <div>
                                     <h5 style="display: inline-block; margin-right: 10px; padding-left: 15px;">Bạn</h5> 
@@ -270,7 +270,8 @@
         </div>
 
     </div>
-             <div class="bg-[#f0fff4] font-sans">
+    {% if recipe_recommended %}
+              <div class="bg-[#f0fff4] font-sans">
                
                 <section class="py-8">
                 <h2 class="text-center font-extrabold text-xl md:text-2xl text-black mb-6">
@@ -280,197 +281,66 @@
                     </span>
                 </h2>
                 <div class="max-w-6xl mx-auto bg-white rounded-xl px-6 py-8 flex items-center gap-4 relative">
-                    <!-- Left arrow -->
-                    <button aria-label="Scroll left" class="absolute left-4 top-1/2 -translate-y-1/2 bg-[#22c55e] w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-[#16a34a] z-10">
-                    <i class="fas fa-chevron-left">
-                    </i>
+                    
+                    <!-- Nút trái -->
+                    <button onclick="scrollToLeft()" aria-label="Scroll left"
+                        class="absolute left-4 top-1/2 -translate-y-1/2 bg-[#22c55e] w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-[#16a34a] z-10">
+                        <i class="fas fa-chevron-left"></i>
                     </button>
                     <!-- Cards container with horizontal scroll -->
-                    <div class="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth px-16" style="scroll-padding-left: 4rem; scroll-padding-right: 4rem;">
-                    <!-- Card 1 -->
-                    <article class="min-w-[280px] max-w-[280px] rounded-lg">
-                    <div class="relative rounded-lg overflow-hidden">
-                    <img alt="A slice of sponge cake with strawberry sauce on a gray plate with a red flower on the side, placed on white fabric" class="w-full h-40 object-cover" height="160" src="https://storage.googleapis.com/a1aa/image/d4e8db57-4e42-4fde-acec-4459acbc3f02.jpg" width="280"/>
-                    <button aria-label="Favorite Bánh bông lan xốt dâu mayonnaise" class="absolute top-3 right-3 bg-white bg-opacity-90 rounded-full w-10 h-10 flex items-center justify-center text-gray-600 hover:text-[#22c55e]">
-                        <i class="fas fa-heart">
-                        </i>
+                    <div id="scroll-container" class="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth px-16" style="scroll-padding-left: 4rem; scroll-padding-right: 4rem;">
+                        <!-- Card 1 -->
+                     {% for ri in recipe_recommended %}
+                        <article class="min-w-[280px] max-w-[280px] rounded-lg">
+                        <div class="relative rounded-lg overflow-hidden">
+                            <img alt="{{ ri.name }}" class="w-full h-40 object-cover" height="160" src="{{ ri.image.url}}" width="280"/>
+                        </div>
+                        <h3 class="mt-3 font-extrabold text-black text-base leading-tight">{{ ri.name }}</h3>
+                        <div class="mt-2 flex flex-wrap gap-2 text-xs text-gray-600 font-semibold">
+                            <span class="flex items-center gap-1 bg-[#f3f3f3] rounded-md px-2 py-1">
+                                <i class="fas fa-utensils">
+                                </i>
+                                {{ri.cook_time}} phút
+                            </span>
+                            <span class="flex items-center gap-1 bg-[#f3f3f3] rounded-md px-2 py-1">
+                                <i class="fas fa-calendar-alt">
+                                </i>
+                                {{ ri.created_at|date:"d/m/Y" }}
+                            </span>
+                        </div>
+                       <button onclick="location.href='{% url 'recipes:recipe_detail' ri.id %}'"
+                            class="mt-4 bg-[#dcfce7] text-[#22c55e] font-extrabold text-xs rounded-md px-4 py-2 flex items-center gap-2 hover:bg-[#bbf7d0]">
+                        XEM CHI TIẾT
+                        <i class="fas fa-chevron-right text-xs"></i>
                     </button>
-                    </div>
-                    <h3 class="mt-3 font-extrabold text-black text-base leading-tight">
-                    Bánh bông lan xốt dâu mayonnaise
-                    </h3>
-                    <div class="mt-1 flex items-center justify-end gap-1 text-xs text-gray-600 font-semibold">
-                    <span class="px-2 py-0.5 rounded-md bg-[#dcfce7] text-[#22c55e] flex items-center gap-1">
-                        15
-                        <i class="fas fa-heart text-xs">
-                        </i>
-                    </span>
-                    </div>
-                    <div class="mt-2 flex flex-wrap gap-2 text-xs text-gray-600 font-semibold">
-                    <span class="flex items-center gap-1 bg-[#f3f3f3] rounded-md px-2 py-1">
-                        <i class="fas fa-user-friends">
-                        </i>
-                        4 Người
-                    </span>
-                    <span class="flex items-center gap-1 bg-[#f3f3f3] rounded-md px-2 py-1">
-                        <i class="fas fa-utensils">
-                        </i>
-                        Dễ
-                    </span>
-                    <span class="flex items-center gap-1 bg-[#f3f3f3] rounded-md px-2 py-1">
-                        <i class="fas fa-calendar-alt">
-                        </i>
-                        30 Phút
-                    </span>
-                    </div>
-                    <button class="mt-4 bg-[#dcfce7] text-[#22c55e] font-extrabold text-xs rounded-md px-4 py-2 flex items-center gap-2 hover:bg-[#bbf7d0]">
-                    XEM CHI TIẾT
-                    <i class="fas fa-chevron-right text-xs">
-                    </i>
-                    </button>
+
+
                     </article>
-                    <!-- Card 2 -->
-                    <article class="min-w-[280px] max-w-[280px] rounded-lg">
-                    <div class="relative rounded-lg overflow-hidden">
-                    <img alt="Three small round salted egg sponge cakes on green leaves on a white plate" class="w-full h-40 object-cover" height="160" src="https://storage.googleapis.com/a1aa/image/fd0e070b-37e5-4ac8-fae2-dcb1a57daf0a.jpg" width="280"/>
-                    <button aria-label="Favorite Bánh bông lan trứng muối" class="absolute top-3 right-3 bg-white bg-opacity-90 rounded-full w-10 h-10 flex items-center justify-center text-gray-600 hover:text-[#22c55e]">
-                        <i class="fas fa-heart">
-                        </i>
-                    </button>
-                    </div>
-                    <h3 class="mt-3 font-extrabold text-black text-base leading-tight">
-                    Bánh bông lan trứng muối
-                    </h3>
-                    <div class="mt-1 flex items-center justify-end gap-1 text-xs text-gray-600 font-semibold">
-                    <span class="px-2 py-0.5 rounded-md bg-[#dcfce7] text-[#22c55e] flex items-center gap-1">
-                        11
-                        <i class="fas fa-heart text-xs">
-                        </i>
-                    </span>
-                    </div>
-                    <div class="mt-2 flex flex-wrap gap-2 text-xs text-gray-600 font-semibold">
-                    <span class="flex items-center gap-1 bg-[#f3f3f3] rounded-md px-2 py-1">
-                        <i class="fas fa-user-friends">
-                        </i>
-                        4 Người
-                    </span>
-                    <span class="flex items-center gap-1 bg-[#f3f3f3] rounded-md px-2 py-1">
-                        <i class="fas fa-utensils">
-                        </i>
-                        Dễ
-                    </span>
-                    <span class="flex items-center gap-1 bg-[#f3f3f3] rounded-md px-2 py-1">
-                        <i class="fas fa-calendar-alt">
-                        </i>
-                        25 Phút
-                    </span>
-                    </div>
-                    <button class="mt-4 bg-[#dcfce7] text-[#22c55e] font-extrabold text-xs rounded-md px-4 py-2 flex items-center gap-2 hover:bg-[#bbf7d0]">
-                    XEM CHI TIẾT
-                    <i class="fas fa-chevron-right text-xs">
-                    </i>
-                    </button>
-                    </article>
-                    <!-- Card 3 -->
-                    <article class="min-w-[280px] max-w-[280px] rounded-lg">
-                    <div class="relative rounded-lg overflow-hidden">
-                    <img alt="Sandwiches with beef and sauce in a blue lunchbox on a blue checkered cloth with a small cup of sauce" class="w-full h-40 object-cover" height="160" src="https://storage.googleapis.com/a1aa/image/e7c90010-dcbe-41a8-1112-2a2600b57ce1.jpg" width="280"/>
-                    <button aria-label="Favorite Sandwiches bò xốt mè rang" class="absolute top-3 right-3 bg-white bg-opacity-90 rounded-full w-10 h-10 flex items-center justify-center text-gray-600 hover:text-[#22c55e]">
-                        <i class="fas fa-heart">
-                        </i>
-                    </button>
-                    <div class="absolute top-3 left-3 bg-[#22c55e] rounded-full w-6 h-6 flex items-center justify-center text-white text-[9px] font-extrabold">
-                        MỚI NGON
-                    </div>
-                    </div>
-                    <h3 class="mt-3 font-extrabold text-black text-base leading-tight">
-                    Sandwiches bò xốt mè rang
-                    </h3>
-                    <div class="mt-1 flex items-center justify-end gap-1 text-xs text-gray-600 font-semibold">
-                    <span class="px-2 py-0.5 rounded-md bg-[#dcfce7] text-[#22c55e] flex items-center gap-1">
-                        1
-                        <i class="fas fa-heart text-xs">
-                        </i>
-                    </span>
-                    </div>
-                    <div class="mt-2 flex flex-wrap gap-2 text-xs text-gray-600 font-semibold">
-                    <span class="flex items-center gap-1 bg-[#f3f3f3] rounded-md px-2 py-1">
-                        <i class="fas fa-user-friends">
-                        </i>
-                        4 Người
-                    </span>
-                    <span class="flex items-center gap-1 bg-[#f3f3f3] rounded-md px-2 py-1">
-                        <i class="fas fa-utensils">
-                        </i>
-                        Dễ
-                    </span>
-                    <span class="flex items-center gap-1 bg-[#f3f3f3] rounded-md px-2 py-1">
-                        <i class="fas fa-calendar-alt">
-                        </i>
-                        10 Phút
-                    </span>
-                    </div>
-                    <button class="mt-4 bg-[#dcfce7] text-[#22c55e] font-extrabold text-xs rounded-md px-4 py-2 flex items-center gap-2 hover:bg-[#bbf7d0]">
-                    XEM CHI TIẾT
-                    <i class="fas fa-chevron-right text-xs">
-                    </i>
-                    </button>
-                    </article>
-                    <!-- Card 4 -->
-                    <article class="min-w-[280px] max-w-[280px] rounded-lg">
-                    <div class="relative rounded-lg overflow-hidden">
-                    <img alt="A pot of mushroom hotpot with various mushrooms and vegetables on a wooden table with ingredients around" class="w-full h-40 object-cover" height="160" src="https://storage.googleapis.com/a1aa/image/ce4057c6-a114-4d62-5389-e3f1677eeb66.jpg" width="280"/>
-                    <button aria-label="Favorite Lẩu nấm" class="absolute top-3 right-3 bg-white bg-opacity-90 rounded-full w-10 h-10 flex items-center justify-center text-gray-600 hover:text-[#22c55e]">
-                        <i class="fas fa-heart">
-                        </i>
-                    </button>
-                    <div class="absolute top-3 left-3 bg-[#22c55e] rounded-full w-6 h-6 flex items-center justify-center text-white text-[9px] font-extrabold">
-                        MỚI NGON
-                    </div>
-                    </div>
-                    <h3 class="mt-3 font-extrabold text-black text-base leading-tight">
-                    Lẩu nấm
-                    </h3>
-                    <div class="mt-1 flex items-center justify-end gap-1 text-xs text-gray-600 font-semibold">
-                    <span class="px-2 py-0.5 rounded-md bg-[#dcfce7] text-[#22c55e] flex items-center gap-1">
-                        2
-                        <i class="fas fa-heart text-xs">
-                        </i>
-                    </span>
-                    </div>
-                    <div class="mt-2 flex flex-wrap gap-2 text-xs text-gray-600 font-semibold">
-                    <span class="flex items-center gap-1 bg-[#f3f3f3] rounded-md px-2 py-1">
-                        <i class="fas fa-user-friends">
-                        </i>
-                        4 Người
-                    </span>
-                    <span class="flex items-center gap-1 bg-[#f3f3f3] rounded-md px-2 py-1">
-                        <i class="fas fa-utensils">
-                        </i>
-                        Dễ
-                    </span>
-                    <span class="flex items-center gap-1 bg-[#f3f3f3] rounded-md px-2 py-1">
-                        <i class="fas fa-calendar-alt">
-                        </i>
-                        20 Phút
-                    </span>
-                    </div>
-                    <button class="mt-4 bg-[#dcfce7] text-[#22c55e] font-extrabold text-xs rounded-md px-4 py-2 flex items-center gap-2 hover:bg-[#bbf7d0]">
-                    XEM CHI TIẾT
-                    <i class="fas fa-chevron-right text-xs">
-                    </i>
-                    </button>
-                    </article>
-                    </div>
-                    <!-- Right arrow -->
-                    <button aria-label="Scroll right" class="absolute right-4 top-1/2 -translate-y-1/2 bg-[#22c55e] w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-[#16a34a] z-10">
+                     {%endfor%}
+                    
+                </div>
+                <!-- Right arrow -->
+                    <button onclick="scrollToRight()" aria-label="Scroll right" class="absolute right-4 top-1/2 -translate-y-1/2 bg-[#22c55e] w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-[#16a34a] z-10">
                     <i class="fas fa-chevron-right">
                     </i>
                     </button>
-                </div>
                 </section>
-           
-        </div>
+                <script>
+                    const container = document.getElementById('scroll-container');
+
+                    function scrollToRight() {
+                        container.scrollBy({ left: 300, behavior: 'smooth' });
+                    }
+
+                    function scrollToLeft() {
+                        container.scrollBy({ left: -300, behavior: 'smooth' });
+                        console.log("Scrolled left. Current scrollLeft:", container.scrollLeft);
+                    }
+                </script>
+
+        </div>                                    
+    {% endif %}
+       
 {% endblock %}
 
 

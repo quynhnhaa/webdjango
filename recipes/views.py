@@ -12,7 +12,7 @@ from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-
+from recipes.cf_models import global_cf_instance
 # Create your views here.
 
 
@@ -38,7 +38,16 @@ class RecipeDetail(View):
         # Lấy thông báo từ session (nếu có)
         recipe_message = request.session.pop("recipe_message", None)
         recipe_status = request.session.pop("recipe_status", None)
-
+        
+        #Đề xuất món ăn cho người dùng id
+        if request.user.is_authenticated:
+            id = request.user.id
+            cf = global_cf_instance
+            recommendations = cf.recommend(id) if cf else []
+            recommended_ids = [item_id for item_id, score in recommendations]
+            recipe_recommended = Recipe.objects.filter(id__in=recommended_ids)
+        else:
+            recipe_recommended = []
         # Truyền dữ liệu vào context để render ra template
         context = {
             "recipe": recipe,
@@ -47,6 +56,7 @@ class RecipeDetail(View):
             "categories": categories,  
             "recipe_status": recipe_status,
             "recipe_message": recipe_message,
+            "recipe_recommended": recipe_recommended
         }
 
         return render(request, "recipes/recipe_detail.html", context)

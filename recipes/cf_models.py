@@ -2,10 +2,10 @@ import sys
 import os
 import django
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webcooking.settings")
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webcooking.settings")
 
-django.setup()
+# django.setup()
 # ------------------------------------------------------------------------------------------------------------
 
 from reviews.models import Review
@@ -15,8 +15,17 @@ import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy import sparse 
 
-class CF(object):
-    def __init__(self, Y_data, K=10, dist_fun=cosine_similarity, uuCF=1):
+global_cf_instance = None
+class CF:
+    _instance = None
+
+    def __new__(cls, Y_data=None, K=10, dist_fun=cosine_similarity, uuCF=1):
+        if cls._instance is None:
+            cls._instance = super(CF, cls).__new__(cls)
+            cls._instance.__initialized = False
+        return cls._instance
+    def __init__(self, Y_data=None, K=10, dist_fun=cosine_similarity, uuCF=1):
+        if self.__initialized: return
         self.uuCF = uuCF
         self.Y_data = Y_data if uuCF else Y_data[:, [1, 0, 2]]
         self.K = K
@@ -25,10 +34,14 @@ class CF(object):
 
         self.n_users = int(np.max(Y_data[:, 0])) + 1
         self.n_items = int(np.max(Y_data[:, 1])) + 1
+        self.fit()
+        self.__initialized = True
+
     def add(self, new_data):
         self.Y_data = np.concatenate((self.Y_data, new_data), axis=0)
         self.n_users = int(np.max(self.Y_data[:, 0])) + 1
         self.n_items = int(np.max(self.Y_data[:, 1])) + 1
+        self.fit()
 
     def normalize_Y(self):
         users = self.Y_data[:, 0]
@@ -45,11 +58,8 @@ class CF(object):
             self.mu[n] = m
 
             self.Ybar_data[ids, 2] = ratings - self.mu[n]
-            print("Mean rating:", self.mu[n])
 
-        
         self.Ybar_data = np.array(self.Ybar_data, dtype=np.float64)
-        print("Normalized ratings:", self.Ybar_data[ids, 2])
     
         #Transform the data into a matrix
         self.Ybar = sparse.coo_matrix((self.Ybar_data[:,2], (self.Ybar_data[:, 1], self.Ybar_data[:, 0] )), (self.n_items, self.n_users))
@@ -86,7 +96,7 @@ class CF(object):
         if self.uuCF: return self.__pred(u, i, normalized)
         return self.__pred(i, u, normalized)
 
-    def recommend(self, u):
+    def recommend(self, u, n=10):
         ids = np.where(self.Y_data[:, 0] == u)[0].astype(np.int32)
         rated_items_by_u = self.Y_data[ids, 1].astype(np.int32)
         recommended_items = []
@@ -94,7 +104,15 @@ class CF(object):
             if i not in rated_items_by_u:
                 ratings = self.__pred(u,i)
                 recommended_items.append([i,ratings])
-        return recommended_items
+        if n > len(recommended_items): 
+            n = len(recommended_items)
+        top_items = sorted(
+                [(item, score) for item, score in recommended_items if score > 0],
+                key=lambda x: x[1],
+                reverse=True
+            )[:n]
+
+        return top_items
     
     def print_recommendation(self):
         print('Recommendation:')
@@ -120,10 +138,14 @@ class CF(object):
 
 
     
-if __name__ == '__main__':
-    reviews = Review.objects.all().values()
-    Y_data = np.array([[r.get('user_id'), r.get("recipe_id"), r.get("rating")] for r in reviews])
-    cf = CF(Y_data, uuCF=1)
-    cf.fit()
-    # cf.Ybar_data[:2]
-    cf.print_recommendation()
+# if __name__ == '__main__':
+#     reviews = Review.objects.all().values()
+#     Y_data = np.array([[r.get('user_id'), r.get("recipe_id"), r.get("rating")] for r in reviews])
+#     # cf = CF(Y_data, uuCF=1)
+#     # cf.fit()
+#     # # cf.Ybar_data[:2]
+#     # cf.print_recommendation()
+#     cf1 = CFSingleton(Y_data)
+#     cf2 = CFSingleton() 
+
+#     print(cf1 is cf2)  # True

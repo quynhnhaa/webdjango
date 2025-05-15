@@ -12,7 +12,7 @@ from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-
+from recipes.cf_models import global_cf_instance
 # Create your views here.
 
 
@@ -21,62 +21,84 @@ class ViewIndex(View):
         return HttpResponse("HELOO")
 
 
+from django.views import View
+from django.shortcuts import render, get_object_or_404
+from .models import Recipe
+
 class RecipeDetail(View):
     def get(self, request, recipe_id):
         recipe = get_object_or_404(Recipe, id=recipe_id)
-        instructions = json.loads(recipe.instructions)
-        reviews = recipe.review_set.all()
-        recipe_categories = ', '.join(recipe.category.values_list('name', flat=True))
-        # Kiểm tra xem có thông báo nào không
-        recipe_message = request.session.pop("recipe_message", None)  
-        recipe_status = request.session.pop("recipe_status", None)  # success / info / error
 
-        context = {"recipe": recipe, "instructions": instructions, "reviews": reviews, "recipe_status": recipe_status, "recipe_message": recipe_message, "recipe_categories" : recipe_categories}
-        return render(request, "recipes/recipe_detail.html", context)  
+        instructions = recipe.instructions.splitlines() if recipe.instructions else []
+
+        reviews = recipe.review_set.all()
+
+        categories = ', '.join([category.name for category in recipe.category.all()])  # Lấy tên danh mục từ ManyToMany
+
+        # Lấy thông báo từ session (nếu có)
+        recipe_message = request.session.pop("recipe_message", None)
+        recipe_status = request.session.pop("recipe_status", None)
+        
+        #Đề xuất món ăn cho người dùng id
+        if request.user.is_authenticated:
+            id = request.user.id
+            cf = global_cf_instance
+            recommendations = cf.recommend(id) if cf else []
+            recommended_ids = [item_id for item_id, score in recommendations]
+            recipe_recommended = Recipe.objects.filter(id__in=recommended_ids)
+        else:
+            recipe_recommended = []
+        # Truyền dữ liệu vào context để render ra template
+        context = {
+            "recipe": recipe,
+            "instructions": instructions,
+            "reviews": reviews,
+            "categories": categories,  
+            "recipe_status": recipe_status,
+            "recipe_message": recipe_message,
+            "recipe_recommended": recipe_recommended
+        }
+
+        return render(request, "recipes/recipe_detail.html", context)
 
 
 class RecipeListView(View):
     def get(self, request):
         query = request.GET.get("search", "").strip()
-        selected_detailcategories = request.GET.getlist("detailcategory")  # Lấy danh sách các danh mục chi tiết được chọn
+        selected_detailcategories = request.GET.getlist("detailcategory")
         selected_detailcategories = [str(id) for id in selected_detailcategories]
 
-        personal = request.GET.get("personal", "-1")  # Lấy personal, mặc định -1
+        personal = request.GET.get("personal", "-1")
         try:
             personal = int(personal)
         except ValueError:
             personal = -1
 
-        recipes = Recipe.objects.all()  
+        recipes = Recipe.objects.all()
+
+        # Lọc theo từ khóa
         if query:
-            recipes = recipes.filter(name__icontains=query)  # Tìm kiếm theo tên món ăn
+            recipes = recipes.filter(name__icontains=query)
 
-        # Lọc theo danh mục chi tiết nếu có
+        # Lọc theo category (nếu là ForeignKey)
         if selected_detailcategories:
-            detail_query = Q()  
-            for detail_id in selected_detailcategories:
-                detail_query &= Q(category__id=detail_id)  
-            
-            recipes = recipes.filter(detail_query) 
-        
-        if request.user.is_authenticated and personal != -1:
-            recipes = recipes.filter(author=request.user)
+            for category_id in selected_detailcategories:
+                recipes = recipes.filter(category__id=category_id)
 
-        paginator = Paginator(recipes, 3)  
+        # Phân trang
+        paginator = Paginator(recipes, 3)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
 
-        page_number = request.GET.get("page")  # Lấy số trang từ URL (?page=2)
-        page_obj = paginator.get_page(page_number)  # Lấy trang tương ứng
-
-        
-        
         context = {
-            "recipes": page_obj,  # Danh sách món ăn của trang hiện tại
-            "page_obj": page_obj,  # Đối tượng phân trang
-            "query": query, 
+            "recipes": page_obj,
+            "page_obj": page_obj,
+            "query": query,
             "selected_detailcategories": selected_detailcategories,
-            "personal": personal
+            "personal": personal,
         }
         return render(request, "recipes/recipe_list.html", context)
+
 
 class RecipeListSearchName(View):
     def get(self, request):

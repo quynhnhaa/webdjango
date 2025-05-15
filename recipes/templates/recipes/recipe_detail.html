@@ -7,7 +7,19 @@
     <!-- Favicon -->
     <link rel="icon" href="img/core-img/favicon.ico">
     <link rel="stylesheet" href="{% static 'homepage/style.css' %}">
-
+     <script src="https://cdn.tailwindcss.com">
+    </script> 
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <style>
+   /* Custom scrollbar hidden for horizontal scroll container */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
@@ -53,7 +65,7 @@
     </div> 
     <!-- ##### Breadcumb Area End ##### -->
 
-    <div class="receipe-post-area section-padding-80">
+    <div class="receipe-post-area section-padding-80 max-w-screen-lg mx-auto">
 
         <!-- Receipe Post Search -->
         <div class="receipe-post-search mb-80">
@@ -101,7 +113,7 @@
         </div>
 
         <!-- Receipe Content Area -->
-        <div class="receipe-content-area">
+        <div class="receipe-content-area ">
             <div class="container">
 
                 <div class="row">
@@ -111,7 +123,7 @@
                             <h2>{{ recipe.name}}</h2>
                             <div class="receipe-duration">
                                 <p><strong style="color: black">Thời gian nấu:</strong> {{ recipe.cook_time }} phút</p>
-                                <p><strong style="color: black">Danh mục:</strong> {{ recipe_categories }} </p>
+                                <p><strong style="color: black">Danh mục:</strong> {{ categories }} </p>
                                 <p><strong style="color: black">Mô tả:</strong> {{ recipe.description }} </p>
 
                             </div>
@@ -137,13 +149,10 @@
                         <!-- Single Preparation Step -->
                         {% for step in instructions %}
                             <div class="single-preparation-step d-flex">
-                                <h4>{{ step.step|stringformat:"02d" }}.</h4>
-                                <p>{{ step.instruction }}</p>
+                                <h4>{{ forloop.counter|stringformat:"02d" }}.</h4> <!-- Dùng forloop.counter để đánh số bước -->
+                                <p>{{ step }}</p> <!-- In ra từng bước -->
                             </div>
-                        {% endfor %}
-                    
-                      
-                      
+                        {% endfor %}                  
                     </div>
 
                     <!-- Ingredients -->
@@ -170,7 +179,7 @@
                         </div>
                         {% for review in reviews %}
                             <div class="single-feature-area mb-30">
-                                <div class="d-flex align-items-center mb-30 ml-10" style="max-height: 20px;">
+                                <div class="d-flex align-items-center mb-30 ml-10" style="max-height: 20px; margin-left: -10px;">
                                     <img src="{% static 'homepage/img/core-img/hamburger2.png' %}" alt="" style="max-height: 30px">
                                     <div>
                                         <h5 style="display: inline-block; margin-right: 10px; padding-left: 15px;">{{ review.user.username }}</h5> 
@@ -179,12 +188,12 @@
                                 
                                 </div>
                                 <p style="margin-left: 37px; margin-top: -25px;">{{ review.created_at}}</p>
-                                <p> {{review.comment}}</p>
+                                <p style="margin-left: 37px;"> {{review.comment}}</p>
                             </div>
                         {% endfor %}
 
                         <div class="single-feature-area mb-30">
-                            <div class="d-flex align-items-center mb-30 ml-10" style="max-height: 20px;">
+                            <div class="d-flex align-items-center mb-30 ml-10" style="max-height: 20px; margin-left: -10px;">
                                 <img src="{% static 'homepage/img/core-img/salad.png' %}" alt="" style="max-height: 30px">
                                 <div>
                                     <h5 style="display: inline-block; margin-right: 10px; padding-left: 15px;">Bạn</h5> 
@@ -257,8 +266,81 @@
                     </div>
                 </div> {% endcomment %}
             </div>
+           
         </div>
+
     </div>
+    {% if recipe_recommended %}
+              <div class="bg-[#f0fff4] font-sans">
+               
+                <section class="py-8">
+                <h2 class="text-center font-extrabold text-xl md:text-2xl text-black mb-6">
+                    Công thức
+                    <span class="text-[#22c55e]">
+                    bạn có thể thích
+                    </span>
+                </h2>
+                <div class="max-w-6xl mx-auto bg-white rounded-xl px-6 py-8 flex items-center gap-4 relative">
+                    
+                    <!-- Nút trái -->
+                    <button onclick="scrollToLeft()" aria-label="Scroll left"
+                        class="absolute left-4 top-1/2 -translate-y-1/2 bg-[#22c55e] w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-[#16a34a] z-10">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <!-- Cards container with horizontal scroll -->
+                    <div id="scroll-container" class="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth px-16" style="scroll-padding-left: 4rem; scroll-padding-right: 4rem;">
+                        <!-- Card 1 -->
+                     {% for ri in recipe_recommended %}
+                        <article class="min-w-[280px] max-w-[280px] rounded-lg">
+                        <div class="relative rounded-lg overflow-hidden">
+                            <img alt="{{ ri.name }}" class="w-full h-40 object-cover" height="160" src="{{ ri.image.url}}" width="280"/>
+                        </div>
+                        <h3 class="mt-3 font-extrabold text-black text-base leading-tight">{{ ri.name }}</h3>
+                        <div class="mt-2 flex flex-wrap gap-2 text-xs text-gray-600 font-semibold">
+                            <span class="flex items-center gap-1 bg-[#f3f3f3] rounded-md px-2 py-1">
+                                <i class="fas fa-utensils">
+                                </i>
+                                {{ri.cook_time}} phút
+                            </span>
+                            <span class="flex items-center gap-1 bg-[#f3f3f3] rounded-md px-2 py-1">
+                                <i class="fas fa-calendar-alt">
+                                </i>
+                                {{ ri.created_at|date:"d/m/Y" }}
+                            </span>
+                        </div>
+                       <button onclick="location.href='{% url 'recipes:recipe_detail' ri.id %}'"
+                            class="mt-4 bg-[#dcfce7] text-[#22c55e] font-extrabold text-xs rounded-md px-4 py-2 flex items-center gap-2 hover:bg-[#bbf7d0]">
+                        XEM CHI TIẾT
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+
+
+                    </article>
+                     {%endfor%}
+                    
+                </div>
+                <!-- Right arrow -->
+                    <button onclick="scrollToRight()" aria-label="Scroll right" class="absolute right-4 top-1/2 -translate-y-1/2 bg-[#22c55e] w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-[#16a34a] z-10">
+                    <i class="fas fa-chevron-right">
+                    </i>
+                    </button>
+                </section>
+                <script>
+                    const container = document.getElementById('scroll-container');
+
+                    function scrollToRight() {
+                        container.scrollBy({ left: 300, behavior: 'smooth' });
+                    }
+
+                    function scrollToLeft() {
+                        container.scrollBy({ left: -300, behavior: 'smooth' });
+                        console.log("Scrolled left. Current scrollLeft:", container.scrollLeft);
+                    }
+                </script>
+
+        </div>                                    
+    {% endif %}
+       
 {% endblock %}
 
 
@@ -276,5 +358,7 @@
     <script src="{% static 'homepage/js/active.js' %}"></script>
 
     <script src=" {% static 'homepage/js/search.js' %}"></script>
+
+    
 
 {% endblock %}

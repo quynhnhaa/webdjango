@@ -1,0 +1,82 @@
+{
+  "Nguyên liệu": [
+    "Thịt vịt",
+    "Thịt bò",
+    "Thịt heo",
+    "Thịt gà",
+    "Ốc",
+    "Ếch",
+    "Cá",
+    "Tôm",
+    "Mực/Bạch tuộc",
+    "Các loại rau",
+    "Cà rốt",
+    "Củ quả",
+    "Cà chua",
+    "Nấm",
+    "Phở / bún / hủ tiếu / miến",
+    "Gạo",
+    "Bánh mì",
+    "Đậu hũ",
+    "Trứng"
+  ],
+  "Cách nấu": [
+    "Quay/Rôti",
+    "Nướng",
+    "Chiên",
+    "Hấp/Tiềm",
+    "Gỏi/Trộn",
+    "Hầm",
+    "Lẩu",
+    "Món Xào",
+    "Canh/Súp",
+    "Om/Rim",
+    "Kho"
+  ],
+  "Dịp lễ": [
+    "Ngày hè",
+    "Lễ hội hóa trang",
+    "Tết",
+    "Giáng sinh",
+    "Sinh nhật",
+    "Bữa sáng",
+    "Bữa trưa",
+    "Bữa tối",
+    "Cuối tuần",
+    "Thực đơn hàng ngày"
+  ],
+  "Món ăn": [
+    "Ăn vặt",
+    "Các món ăn kèm, món phụ",
+    "Món chay",
+    "Món nhậu",
+    "Món mặn"
+  ],
+  "Gia đình": [
+    "Người lớn tuổi",
+    "Cha",
+    "Mẹ",
+    "Trẻ em"
+  ],
+  "Vùng miền": [
+    "Món Á",
+    "Món Âu",
+    "Bắc",
+    "Trung",
+    "Nam"
+  ],
+  "Theo nhu cầu dinh dưỡng": [
+    "Hỗ trợ tim và mạch máu",
+    "Hỗ trợ hệ tiêu hóa",
+    "Cân bằng dinh dưỡng",
+    "Hỗ trợ xây dựng khối cơ xương",
+    "Hỗ trợ cho thận khỏe mạnh",
+    "Hỗ trợ cho gan khỏe mạnh",
+    "Giúp làm việc trí não hiệu quả",
+    "Giảm khối mỡ thừa của cơ thể",
+    "Bổ máu"
+  ],
+  "Khác": [
+    "Khác"
+  ]
+}

@@ -73,6 +73,7 @@
         let currentBotMessageEl = null;
         let accumulatedMessage = ''; // Biến để tích lũy dữ liệu từ WebSocket
         const threadId = generateUUID();
+        let isMessageComplete = false; // Thêm biến để theo dõi trạng thái tin nhắn
 
         // Kết nối WebSocket
         function connectWebSocket() {
@@ -81,22 +82,36 @@
             websocket.onmessage = function (event) {
                 const data = event.data;
                 if (currentBotMessageEl) {
+                    // Kiểm tra nếu là tin nhắn kết thúc
+                    if (data.includes('END_OF_MESSAGE')) {
+                        isMessageComplete = true;
+                        data = data.replace('END_OF_MESSAGE', '');
+                    }
+                    
                     // Tích lũy dữ liệu từ WebSocket
                     accumulatedMessage += data;
+                    
                     try {
                         // Thay thế \n bằng <br> và render Markdown
                         const markdownText = accumulatedMessage.replace(/\n/g, '<br>');
-                        const htmlContent = marked.parse(markdownText); // Render Markdown thành HTML
+                        const htmlContent = marked.parse(markdownText);
                         currentBotMessageEl.html(htmlContent);
-                        // Đảm bảo tất cả các phần tử con cũng có màu đen
                         currentBotMessageEl.find('*').css('color', '#000000');
                     } catch (e) {
                         console.error('Error rendering Markdown:', e);
                         currentBotMessageEl.html(accumulatedMessage);
                         currentBotMessageEl.css('color', '#000000');
                     }
+                    
                     chatboxMessages.scrollTop(chatboxMessages[0].scrollHeight);
                     console.log('Received:', data);
+                    
+                    // Nếu tin nhắn đã hoàn thành, reset các biến
+                    if (isMessageComplete) {
+                        accumulatedMessage = '';
+                        isMessageComplete = false;
+                        currentBotMessageEl = null;
+                    }
                 }
             };
 

@@ -1,0 +1,191 @@
+{% load static %}
+
+<div class="chatbox-toggle">
+    <button id="chatToggleBtn" class="btn delicious-btn" title="Chat bot ẩm thực">
+        <i class="fa fa-comments" aria-hidden="true"></i>
+    </button>
+</div>
+
+<div class="chatbox-wrapper" id="chatboxWrapper">
+    <div class="chatbox-header">
+        <h4>Chatbot Ẩm Thực</h4>
+        <button id="chatCloseBtn" class="chat-close-btn">
+            <i class="fa fa-times" aria-hidden="true"></i>
+        </button>
+    </div>
+    <div class="chatbox-messages" id="chatboxMessages">
+        <div class="chat-message bot">
+            <img src="{% static 'homepage/img/core-img/logo.png' %}" alt="Bot Avatar" class="avatar">
+            <div class="message-content">
+                Chào bạn! Tôi có thể giúp gì cho bạn hôm nay? Hỏi tôi về công thức, nguyên liệu, hoặc gợi ý món ăn nhé!
+            </div>
+        </div>
+    </div>
+    <div class="chat-input-area">
+        <div class="emoji-picker">
+            <button id="emojiBtn" class="emoji-toggle-btn">
+                <i class="fa fa-smile-o" aria-hidden="true"></i>
+            </button>
+            <div class="emoji-menu" id="emojiMenu">
+                <span class="emoji" data-emoji="😊">😊</span>
+                <span class="emoji" data-emoji="👍">👍</span>
+                <span class="emoji" data-emoji="🍴">🍴</span>
+                <span class="emoji" data-emoji="🥗">🥗</span>
+                <span class="emoji" data-emoji="🍜">🍜</span>
+            </div>
+        </div>
+        <input type="text" id="chatInput" placeholder="Nhập câu hỏi về món ăn..." autocomplete="off">
+        <button id="sendMessage" class="btn delicious-btn">
+            <i class="fa fa-paper-plane" aria-hidden="true"></i>
+        </button>
+    </div>
+</div>
+
+<link rel="stylesheet" href="{% static 'homepage/chatbox.css' %}">
+<style>
+    .chat-message.bot .message-content {
+        color: #000000 !important;
+    }
+    .chat-message.bot .message-content * {
+        color: #000000 !important;
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function() {
+        const chatboxWrapper = $('#chatboxWrapper');
+        const chatToggleBtn = $('#chatToggleBtn');
+        const chatCloseBtn = $('#chatCloseBtn');
+        const chatboxMessages = $('#chatboxMessages');
+        const chatInput = $('#chatInput');
+        const sendButton = $('#sendMessage');
+        const emojiBtn = $('#emojiBtn');
+        const emojiMenu = $('#emojiMenu');
+        
+        function generateUUID() {
+            return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+            );
+        }
+
+        let websocket;
+        let currentBotMessageEl = null;
+        let accumulatedMessage = ''; // Biến để tích lũy dữ liệu từ WebSocket
+        const threadId = generateUUID();
+
+        // Kết nối WebSocket
+        function connectWebSocket() {
+            websocket = new WebSocket(`ws://localhost:5001/ws/${threadId}`);
+
+            websocket.onmessage = function (event) {
+                const data = event.data;
+                if (currentBotMessageEl) {
+                    // Tích lũy dữ liệu từ WebSocket
+                    accumulatedMessage += data;
+                    try {
+                        // Thay thế \n bằng <br> và render Markdown
+                        const markdownText = accumulatedMessage.replace(/\n/g, '<br>');
+                        const htmlContent = marked.parse(markdownText); // Render Markdown thành HTML
+                        currentBotMessageEl.html(htmlContent);
+                        // Đảm bảo tất cả các phần tử con cũng có màu đen
+                        currentBotMessageEl.find('*').css('color', '#000000');
+                    } catch (e) {
+                        console.error('Error rendering Markdown:', e);
+                        currentBotMessageEl.html(accumulatedMessage);
+                        currentBotMessageEl.css('color', '#000000');
+                    }
+                    chatboxMessages.scrollTop(chatboxMessages[0].scrollHeight);
+                    console.log('Received:', data);
+                }
+            };
+
+            websocket.onerror = function () {
+                appendMessage('bot', '⚠️ Lỗi kết nối Chatbot.');
+            };
+
+            websocket.onclose = function () {
+                appendMessage('bot', '💬 Kết nối đã đóng. Đang thử lại...');
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        connectWebSocket();
+
+        // Hiện/ẩn chatbox
+        chatToggleBtn.on('click', function() {
+            chatboxWrapper.toggle();
+            if (chatboxWrapper.is(':visible')) {
+                chatInput.focus();
+                chatboxMessages.scrollTop(chatboxMessages[0].scrollHeight);
+            }
+        });
+
+        chatCloseBtn.on('click', function() {
+            chatboxWrapper.hide();
+        });
+
+        emojiBtn.on('click', function() {
+            emojiMenu.toggle();
+        });
+
+        $('.emoji').on('click', function() {
+            chatInput.val(chatInput.val() + $(this).data('emoji'));
+            emojiMenu.hide();
+            chatInput.focus();
+        });
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.emoji-picker').length) {
+                emojiMenu.hide();
+            }
+        });
+
+        // Hàm thêm tin nhắn
+        function appendMessage(sender, message, returnElement = false) {
+            const messageClass = sender === 'user' ? 'user' : 'bot';
+            const avatar = sender === 'user' ?
+                '{% static "homepage/img/core-img/hamburger2.png" %}' :
+                '{% static "homepage/img/core-img/logo.png" %}';
+            const messageId = 'msg-' + Date.now();
+
+            const messageHtml = `
+                <div class="chat-message ${messageClass}" data-id="${messageId}">
+                    ${sender === 'bot' ? `<img src="${avatar}" alt="${sender} Avatar" class="avatar">` : ''}
+                    <div class="message-content" id="${messageId}" style="color: ${sender === 'bot' ? '#000000' : 'inherit'}">${message}</div>
+                    ${sender === 'user' ? `<img src="${avatar}" alt="${sender} Avatar" class="avatar">` : ''}
+                </div>
+            `;
+            chatboxMessages.append(messageHtml);
+            chatboxMessages.scrollTop(chatboxMessages[0].scrollHeight);
+
+            if (returnElement) {
+                return $('#' + messageId);
+            }
+        }
+
+        // Hàm gửi tin nhắn
+        function sendMessage() {
+            const message = chatInput.val().trim();
+            if (!message || websocket.readyState !== WebSocket.OPEN) return;
+
+            appendMessage('user', message);
+            chatInput.val('');
+
+            // Gửi tin nhắn
+            websocket.send(message);
+
+            // Reset tích lũy và tạo khung tin nhắn bot mới
+            accumulatedMessage = '';
+            currentBotMessageEl = appendMessage('bot', '', true);
+        }
+
+        sendButton.on('click', sendMessage);
+
+        chatInput.on('keypress', function(e) {
+            if (e.which === 13) {
+                sendMessage();
+            }
+        });
+    });
+</script>

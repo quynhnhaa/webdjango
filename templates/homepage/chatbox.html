@@ -1,7 +1,7 @@
 {% load static %}
 
 <div class="chatbox-toggle">
-    <button id="chatToggleBtn" class="btn delicious-btn" title="Chat với bot ẩm thực">
+    <button id="chatToggleBtn" class="btn delicious-btn" title="Chat bot ẩm thực">
         <i class="fa fa-comments" aria-hidden="true"></i>
     </button>
 </div>
@@ -42,7 +42,7 @@
 </div>
 
 <link rel="stylesheet" href="{% static 'homepage/chatbox.css' %}">
-
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(document).ready(function() {
@@ -54,6 +54,41 @@
         const sendButton = $('#sendMessage');
         const emojiBtn = $('#emojiBtn');
         const emojiMenu = $('#emojiMenu');
+        
+        function generateUUID() {
+            return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+            );
+        }
+
+        let websocket;
+        let currentBotMessageEl = null;
+        const threadId = generateUUID(); // Random
+        
+        // Kết nối WebSocket
+        function connectWebSocket(){
+            websocket = new WebSocket(`ws://localhost:5001/ws/${threadId}`);
+
+            websocket.onmessage = function (event) {
+                const data = event.data;
+
+                if (currentBotMessageEl) {
+                    currentBotMessageEl.append(data);
+                    console.log(data);
+                }
+            };
+
+            websocket.onerror = function () {
+                appendMessage('bot', '⚠️ Lỗi kết nối Chatbot.');
+            };
+
+            websocket.onclose = function () {
+                appendMessage('bot', '💬 Kết nối đã đóng. Đang thử lại...');
+                setTimeout(connectWebSocket, 3000); // tự động kết nối lại
+            };
+        }
+
+        connectWebSocket();
 
         // Hiện/ẩn chatbox 
         chatToggleBtn.on('click', function() {
@@ -85,43 +120,40 @@
         });
 
         // Hàm thêm tin nhắn
-        function appendMessage(sender, message) {
+        function appendMessage(sender, message, returnElement = false) {
             const messageClass = sender === 'user' ? 'user' : 'bot';
-            const avatar = sender === 'user' ? 
-                '{% static "homepage/img/core-img/hamburger2.png" %}' : 
+            const avatar = sender === 'user' ?
+                '{% static "homepage/img/core-img/hamburger2.png" %}' :
                 '{% static "homepage/img/core-img/logo.png" %}';
+            const messageId = 'msg-' + Date.now(); // hoặc UUID nếu cần
             const messageHtml = `
-                <div class="chat-message ${messageClass}">
+                <div class="chat-message ${messageClass}" data-id="${messageId}">
                     ${sender === 'bot' ? `<img src="${avatar}" alt="${sender} Avatar" class="avatar">` : ''}
-                    <div class="message-content">${message}</div>
+                    <div class="message-content" id="${messageId}">${message}</div>
                     ${sender === 'user' ? `<img src="${avatar}" alt="${sender} Avatar" class="avatar">` : ''}
                 </div>
             `;
             chatboxMessages.append(messageHtml);
             chatboxMessages.scrollTop(chatboxMessages[0].scrollHeight);
+
+            if (returnElement) {
+                return $('#' + messageId); // Trả lại phần tử message-content để stream tiếp
+            }
         }
 
         // Hàm gửi tin nhắn
         function sendMessage() {
             const message = chatInput.val().trim();
-            if (!message) return;
+            if (!message || websocket.readyState !== WebSocket.OPEN) return;
 
             appendMessage('user', message);
             chatInput.val('');
 
-            $.ajax({
-                url: '/api/chatbot',
-                method: 'POST',
-                data: JSON.stringify({ message: message }),
-                contentType: 'application/json',
-                success: function(response) {
-                    const botResponse = response.reply || 'Xin lỗi, tôi không hiểu câu hỏi. Hãy thử hỏi về món ăn!';
-                    appendMessage('bot', botResponse);
-                },
-                error: function() {
-                    appendMessage('bot', 'Có lỗi xảy ra. Vui lòng thử lại!');
-                }
-            });
+            // Gửi tin nhắn
+            websocket.send(message);
+
+            // Tạo khung tin nhắn bot rỗng để stream vào
+            currentBotMessageEl = appendMessage('bot', '', true); // <- Quan trọng!
         }
 
         sendButton.on('click', sendMessage);
@@ -129,22 +161,6 @@
         chatInput.on('keypress', function(e) {
             if (e.which === 13) {
                 sendMessage();
-            }
-        });
-
-        $(document).ajaxSend(function(event, jqXHR, settings) {
-            if (settings.url === '/api/chatbot') {
-                const data = JSON.parse(settings.data);
-                let reply = 'Xin lỗi, tôi chưa có thông tin về câu hỏi này. Hãy hỏi về món ăn khác!';
-                if (data.message.toLowerCase().includes('phở')) {
-                    reply = 'Phở bò cần:<br>- Xương bò: 1kg<br>- Thịt bò: 500g<br>- Bánh phở: 1kg<br>- Hành tây, gừng, hoa hồi, quế<br>- Rau thơm<br>Hầm xương 6-8 giờ, nêm gia vị. Chi tiết hơn?';
-                } else if (data.message.toLowerCase().includes('bún chả')) {
-                    reply = 'Bún chả cần:<br>- Thịt lợn: 500g<br>- Bún: 1kg<br>- Nước mắm, tỏi, ớt, chanh<br>- Rau sống<br>Nướng thịt, pha nước chấm. Hướng dẫn chi tiết?';
-                } else if (data.message.toLowerCase().includes('bánh xèo')) {
-                    reply = 'Bánh xèo cần:<br>- Bột gạo: 200g<br>- Nước cốt dừa: 200ml<br>- Tôm, thịt: 200g<br>- Giá đỗ, rau sống<br>Chiên trên chảo nóng. Chi tiết hơn?';
-                }
-                jqXHR.done({ reply: reply });
-                return false;
             }
         });
     });

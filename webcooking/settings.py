@@ -91,7 +91,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'mycooking',
         'USER': 'root',
-        'PASSWORD': '123456',
+        'PASSWORD': 'Khanh181*',
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {

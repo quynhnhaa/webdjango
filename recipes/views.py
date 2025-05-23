@@ -33,7 +33,7 @@ class RecipeDetail(View):
 
         reviews = recipe.review_set.all()
 
-        categories = ', '.join([category.name for category in recipe.category.all()])  # Lấy tên danh mục từ ManyToMany
+        recipe_categories = ', '.join(recipe.category.values_list('name', flat=True))
 
         # Lấy thông báo từ session (nếu có)
         recipe_message = request.session.pop("recipe_message", None)
@@ -53,7 +53,7 @@ class RecipeDetail(View):
             "recipe": recipe,
             "instructions": instructions,
             "reviews": reviews,
-            "categories": categories,  
+            "recipe_categories" : recipe_categories,  
             "recipe_status": recipe_status,
             "recipe_message": recipe_message,
             "recipe_recommended": recipe_recommended
